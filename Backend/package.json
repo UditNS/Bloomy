@@ -1,0 +1,22 @@
+{
+  "name": "bloomy",
+  "version": "1.0.0",
+  "description": "A place for developer to connect and collaborate ",
+  "keywords": [
+    "node.js",
+    "javascript",
+    "mongodb",
+    "express.js"
+  ],
+  "license": "ISC",
+  "author": "Udit Narayan Singh",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
