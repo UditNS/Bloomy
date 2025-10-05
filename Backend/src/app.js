@@ -2,28 +2,25 @@ const express = require('express')
 
 const app = express();
 
-// This will only handle GET call to the /user
-app.get('/user', (req, res)=>{
+// I have put ? after b this means now b is optional. When i cal /abc it will work and also when i call /ac it will also work.
+
+
+// If i put + after b then it means i can add as many b as i want to like abbbbbc, abc, abbbbc but abcc and aaabc won't work
+
+// If i put * after b then it means I can now put anything i want like abJFOIFJOFc, abuditc it will work. It should start with ab and end with c.
+
+// I can group things up like a(bc)?d -> Here bc is optional 
+
+// Regex can also work in path
+
+app.get('/abc', (req, res)=>{
     res.send({
         'firstName': "udit",
         'lastName': "ns"
     })
 })
 
-app.post('/user', (req, res)=>{
-    console.log("Saved the data to the db")
-    res.send("data successfully saved")
-})
 
-app.delete('/user', (req, res) => {
-    console.log("user profile deleted successfully")
-    res.send("user is deleted")
-})
-
-// this will handle all the HTTP method to this /test 
-app.use("/test", (req, res) => {
-    res.send("hellp dude i am on the server")// only show this in /new
-})
 
 app.listen(3000, () => {
     console.log("My server is listening on the port 3000")
