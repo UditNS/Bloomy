@@ -1,3 +1,5 @@
+// middleware is nothing just a function which contains route handler
+
 const adminAuth = (req,res,next) => {
     const token = 'xyz';
     const isAutherized = token === 'xyz';
