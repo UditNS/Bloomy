@@ -7,9 +7,19 @@
 // correct way to connect to db is first connect to the databse then listen to the server
 
 const mongoose = require('mongoose')
+const { collection } = require('../models/user')
 
 const connectDB = async()=> {
     await mongoose.connect('mongodb+srv://uditn007:oPPKRVthg5HBn5P8@uditscluster.dskk5dk.mongodb.net/Bloomy')
 }
 
 module.exports = connectDB
+
+
+// cluster
+//     |
+// database
+//     |
+// collection
+//     |
+// one document
