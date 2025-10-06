@@ -3,6 +3,7 @@ const express = require('express')
 const app = express();
 // userModel
 const User = require('./models/user')
+const validator = require("validator")
 
 // convert json into js object
 app.use(express.json());
@@ -23,11 +24,15 @@ app.post('/signup', async(req, res) => {
     // creating a new instance of the user Model
     const user = new User(userObj) // creating a new data with userObj
     try{
+        if(!validator.isEmail(req.body.email)){
+            throw new Error("email is not valid")
+        }
+
         await user.save() // this will save the data to the database // a promise
         res.send("user added successfully")
     }
     catch(error){
-        res.status(500).send("error occured" + error.message)
+        res.status(500).send("error occured :" + error.message)
     }
 
     // In the database there are two other fields (__v, _id) -> these are created by mongodb
