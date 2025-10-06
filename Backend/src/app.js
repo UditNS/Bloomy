@@ -71,11 +71,30 @@ app.get('/id', async (req, res) => {
 
 })
 
-// Delete API
-
+// Delete API -> findById and delete
+app.use('/delete', async(req,res) => {
+    const userId = req.body._id
+    try{
+        await User.findByIdAndDelete(userId)
+        res.send("user deleted")
+    }
+    catch(error){
+        
+    }
+})
 
 // Update API
-
+app.patch('/update', async(req,res) => {
+    const userId = req.body._id
+    const data = req.body // data which needed to be changed
+    try{
+        // here data also consist the _id but we didn't define it in schema. So, it will be ignored by mongodb
+        await User.findByIdAndUpdate({_id: userId}, data);
+        res.send("user updated successfully")
+    }catch(err){
+        res.status(500).send(`something went wrong ${error.message}`)
+    }
+})
 
 connectDB().then(()=>{
     console.log('db connect successfully')
