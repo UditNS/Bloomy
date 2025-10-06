@@ -92,14 +92,15 @@ app.patch('/update', async(req,res) => {
         "userId","photoUrl", "description", "gender", "age", "skills"
     ]
 
-    const isUpdateAllowed = Object.keys(data).every((k) => {
-        ALLOWED_UPDATES.includes(k);
-    })
-    if(!isUpdateAllowed){
-        res.status(400).send("Update not allowed")
-    }
+    
 
     try{
+        const isUpdateAllowed = Object.keys(data).every((k) => {
+        ALLOWED_UPDATES.includes(k);
+        })
+        if(!isUpdateAllowed){
+            throw new Error("Update not allowed")
+        }
         // here data also consist the _id but we didn't define it in schema. So, it will be ignored by mongodb
         const user = await User.findByIdAndUpdate({_id: userId}, data, {
             returnDocument: "after", // it will return the updated document
