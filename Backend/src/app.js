@@ -87,12 +87,27 @@ app.use('/delete', async(req,res) => {
 app.patch('/update', async(req,res) => {
     const userId = req.body._id
     const data = req.body // data which needed to be changed
+
+    const ALLOWED_UPDATES = [
+        "userId","photoUrl", "description", "gender", "age", "skills"
+    ]
+
+    const isUpdateAllowed = Object.keys(data).every((k) => {
+        ALLOWED_UPDATES.includes(k);
+    })
+    if(!isUpdateAllowed){
+        res.status(400).send("Update not allowed")
+    }
+
     try{
         // here data also consist the _id but we didn't define it in schema. So, it will be ignored by mongodb
-        await User.findByIdAndUpdate({_id: userId}, data);
+        const user = await User.findByIdAndUpdate({_id: userId}, data, {
+            returnDocument: "after", // it will return the updated document
+            runValidators: true // this will run validation 
+        });
         res.send("user updated successfully")
     }catch(err){
-        res.status(500).send(`something went wrong ${error.message}`)
+        res.status(500).send(`something went wrong ${err.message}`)
     }
 })
 
