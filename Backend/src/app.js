@@ -34,17 +34,56 @@ app.post('/signup', async(req, res) => {
     // _id -> unique id 
 })
 
+// get user by email (find a user )
+app.get('/user', async(req, res) => {
+    const userEmail = req.body.email;
 
+    try{
+        const users = await User.find({email: userEmail})
+        if(users.length === 0){
+            res.status(404).send("user not found")
+        }
+        res.send(users)
+    }
+    catch(err){
+        res.status(400).send(`something went wrong ${err.message}`)
+    }
+
+})
+
+// Feed api -> GET /feed -> get all the user from the database
+app.get('/feed', async(req, res) => {
+    const allUser = await User.find({}) // passing empty filter ->it will send all the user 
+
+    res.send(allUser )
+})
+
+// findById() function
+app.get('/id', async (req, res) => {
+    try{
+        const userId = req.body._id;
+        const userDetails = await User.findById(userId)
+        res.send(userDetails)
+    }
+    catch(error){
+        res.status(500).send(`something went wrong. here is the error message: ${error.message}`)
+    }
+
+})
+
+// Delete API
+
+
+// Update API
 
 
 connectDB().then(()=>{
     console.log('db connect successfully')
     // once my db is connected successfully then only I will listen to the server(this is the proer way of db connect)
     app.listen(3000, () => {
-        console.log("My server is listening on the port 3000")
+        console.log("My server is listening on the port 3000") 
     })
 }).catch((err) => {
     console.log('db cannot be connected!!!')
     console.log(err); 
 })
-
