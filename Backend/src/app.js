@@ -3,12 +3,14 @@ const express = require('express')
 const app = express();
 const {validateSignupData} = require("./utils/validation")
 const bcrypt = require('bcrypt')
+const cookieParser = require('cookie-parser')
 // userModel
 const User = require('./models/user')
 
 
 // convert json into js object
 app.use(express.json());
+app.use(cookieParser())
 
 // signup
 app.post('/signup', async(req, res) => {
@@ -53,6 +55,11 @@ app.post('/login', async (req,res) => {
 
         const checkCrediential = await bcrypt.compare(password, userObj.password)
         if(checkCrediential){
+            // create a jwt token
+
+            // add the token into the cookie and send back the response to the client
+
+            res.cookie("token", "hdflujvopifjlriwgaho8hfgsvon")
             res.send("user logged in successfully")
         }
         else{
@@ -62,6 +69,17 @@ app.post('/login', async (req,res) => {
         res.send(`Something went wrong : ${error.message}`)
     }
 })
+
+//profile
+app.get('/profile', async (req, res) => {
+    const cookie = req.cookies // if cookie not present then it will return [Object: null prototype]
+    console.log(cookie)
+    const {token} = cookie;
+    // Validate the token
+
+    res.send("reading cookie")
+})
+
 // get user by email (find a user )
 app.get('/user', async(req, res) => {
     const userEmail = req.body.email;
