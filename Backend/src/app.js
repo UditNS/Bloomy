@@ -60,7 +60,6 @@ app.post('/login', async (req,res) => {
             // create a jwt token
             const token = await jwt.sign({_id: userObj._id}, process.env.SECRET_KEY)
             // add the token into the cookie and send back the response to the client
-            console.log(token)
             res.cookie("token", token)
             res.send("user logged in successfully")
         }
@@ -74,12 +73,24 @@ app.post('/login', async (req,res) => {
 
 //profile
 app.get('/profile', async (req, res) => {
-    const cookie = req.cookies // if cookie not present then it will return [Object: null prototype]
-    console.log(cookie)
-    const {token} = cookie;
-    // Validate the token
-
-    res.send("reading cookie")
+    try{
+        // getting the cookie
+        const cookie = req.cookies // if cookie not present then it will return [Object: null prototype]
+        const {token} = cookie;
+        if(!token){
+            throw new Error("please loggin again")
+        }
+    
+        // Validate the token
+        const deMessage = await jwt.verify(token, process.env.SECRET_KEY) // gives the _id which i have passed while creating the token
+        // extracting the id
+        const {_id} = deMessage
+        const user = await User.findById(_id) //getting the user
+        res.send(user)
+    }catch(error){
+        res.status(400).send("error occured : " + error)
+    }
+   
 })
 
 // get user by email (find a user )
