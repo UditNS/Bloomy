@@ -4,8 +4,6 @@ const app = express();
 const {validateSignupData} = require("./utils/validation")
 const bcrypt = require('bcrypt')
 const cookieParser = require('cookie-parser')
-const jwt = require('jsonwebtoken');
-require('dotenv').config()
 const {userAuth} = require("./middlewares/auth")
 // userModel
 const User = require('./models/user')
@@ -56,10 +54,10 @@ app.post('/login', async (req,res) => {
             throw new Error("Email id or password is incorrect")
         }
 
-        const checkCrediential = await bcrypt.compare(password, userObj.password)
+        const checkCrediential = userObj.passwordCheck(password);
         if(checkCrediential){
             // create a jwt token
-            const token = await jwt.sign({_id: userObj._id}, process.env.SECRET_KEY, {expiresIn : "7d"})
+            const token = await userObj.getJwt();
             // add the token into the cookie and send back the response to the client
             res.cookie("token", token)
             res.send("user logged in successfully")

@@ -1,4 +1,7 @@
 const mongoose = require('mongoose')
+require('dotenv').config()
+const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken');
 
 const userSchema = new mongoose.Schema({
     firstName : {
@@ -66,6 +69,21 @@ const userSchema = new mongoose.Schema({
     //this will add by default when the user created a document and when the user updated the doucment 
     timestamps: true,
 })
+
+// helper function of userSchema
+userSchema.methods.getJwt = async function() {// NEVER USE ARROW FUNCTION HERE IT WILL BREAK THINGS UP
+    const userObj = this;
+    const token = await jwt.sign({_id: userObj._id}, process.env.SECRET_KEY, {expiresIn : "7d"})
+
+    return token
+}
+
+userSchema.methods.passwordCheck = async function (passwordWrittenByUser){
+    const userObj = this
+    const crediential = await bcrypt.compare(passwordWrittenByUser, userObj.password)
+    return crediential
+}
+
 
 const User = mongoose.model('User', userSchema) // 
 // Has to be capital
