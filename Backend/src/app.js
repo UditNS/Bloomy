@@ -1,44 +1,67 @@
 const connectDB = require('./config/database')
 const express = require('express')
 const app = express();
+const {validateSignupData} = require("./utils/validation")
+const bcrypt = require('bcrypt')
 // userModel
 const User = require('./models/user')
-const validator = require("validator")
+
 
 // convert json into js object
 app.use(express.json());
 
+// signup
 app.post('/signup', async(req, res) => {
-    
-    const userObj = (req.body)
+    try{
+    const {firstName, lastName, email, password, age, skill} = req.body
+    // validation
+    validateSignupData(req);
 
-    // const userObj ={
-    //     firstName : "Alia",
-    //     lastName: "Bhatt",
-    //     email : "udit@gmail.com",
-    //     password : "udit@1234",
-    //     // age : 23,
-    //     // gender : "M"
-    // } 
+    // encrypt the password (using bcrypt)
+    const hashPassword = await bcrypt.hash(password, 10)
 
     // creating a new instance of the user Model
-    const user = new User(userObj) // creating a new data with userObj
-    try{
-        if(!validator.isEmail(req.body.email)){
-            throw new Error("email is not valid")
-        }
+    const user = new User({
+        firstName,
+        lastName,
+        email,
+        age,
+        skill,
+        password: hashPassword
+    }) // creating a new data with userObj
 
         await user.save() // this will save the data to the database // a promise
         res.send("user added successfully")
     }
     catch(error){
-        res.status(500).send("error occured :" + error.message)
+        res.status(500).send("error occured : " + error.message)
     }
 
     // In the database there are two other fields (__v, _id) -> these are created by mongodb
     // _id -> unique id 
 })
 
+//login
+app.post('/login', async (req,res) => {
+    try{
+        const {email, password} = req.body
+
+        const userObj = await User.findOne({ email:email })
+        if(!userObj){
+            throw new Error("Email id or password is incorrect")
+        }
+
+        const checkCrediential = await bcrypt.compare(password, userObj.password)
+        if(checkCrediential){
+            res.send("user logged in successfully")
+        }
+        else{
+            throw new Error("Email id or password is incorrect")
+        }
+    }catch(error){
+        res.send(`Something went wrong : ${error.message}`)
+    }
+})
 // get user by email (find a user )
 app.get('/user', async(req, res) => {
     const userEmail = req.body.email;
