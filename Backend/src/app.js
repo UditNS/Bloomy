@@ -6,6 +6,7 @@ const bcrypt = require('bcrypt')
 const cookieParser = require('cookie-parser')
 const jwt = require('jsonwebtoken');
 require('dotenv').config()
+const {userAuth} = require("./middlewares/auth")
 // userModel
 const User = require('./models/user')
 
@@ -58,7 +59,7 @@ app.post('/login', async (req,res) => {
         const checkCrediential = await bcrypt.compare(password, userObj.password)
         if(checkCrediential){
             // create a jwt token
-            const token = await jwt.sign({_id: userObj._id}, process.env.SECRET_KEY)
+            const token = await jwt.sign({_id: userObj._id}, process.env.SECRET_KEY, {expiresIn : "7d"})
             // add the token into the cookie and send back the response to the client
             res.cookie("token", token)
             res.send("user logged in successfully")
@@ -72,26 +73,28 @@ app.post('/login', async (req,res) => {
 })
 
 //profile
-app.get('/profile', async (req, res) => {
+app.get('/profile',userAuth, async (req, res) => {
     try{
-        // getting the cookie
-        const cookie = req.cookies // if cookie not present then it will return [Object: null prototype]
-        const {token} = cookie;
-        if(!token){
-            throw new Error("please loggin again")
-        }
-    
-        // Validate the token
-        const deMessage = await jwt.verify(token, process.env.SECRET_KEY) // gives the _id which i have passed while creating the token
-        // extracting the id
-        const {_id} = deMessage
-        const user = await User.findById(_id) //getting the user
+        const user= req.user
         res.send(user)
     }catch(error){
-        res.status(400).send("error occured : " + error)
+        res.status(400).send("error occured : " + error.message)
     }
-   
+
 })
+
+// sent connection request
+app.post('/sendConnectionRequest', userAuth, async (req,res) => {
+    try{
+        const user = req.user;
+
+        res.send(`${user.firstName} sent you the request`);
+    }
+    catch(error){
+        res.status(400).send("Something went wrong : " + error.message)
+    }
+})
+
 
 // get user by email (find a user )
 app.get('/user', async(req, res) => {
