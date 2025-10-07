@@ -4,6 +4,8 @@ const app = express();
 const {validateSignupData} = require("./utils/validation")
 const bcrypt = require('bcrypt')
 const cookieParser = require('cookie-parser')
+const jwt = require('jsonwebtoken');
+require('dotenv').config()
 // userModel
 const User = require('./models/user')
 
@@ -56,10 +58,10 @@ app.post('/login', async (req,res) => {
         const checkCrediential = await bcrypt.compare(password, userObj.password)
         if(checkCrediential){
             // create a jwt token
-
+            const token = await jwt.sign({_id: userObj._id}, process.env.SECRET_KEY)
             // add the token into the cookie and send back the response to the client
-
-            res.cookie("token", "hdflujvopifjlriwgaho8hfgsvon")
+            console.log(token)
+            res.cookie("token", token)
             res.send("user logged in successfully")
         }
         else{

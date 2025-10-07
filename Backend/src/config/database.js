@@ -7,9 +7,10 @@
 // correct way to connect to db is first connect to the databse then listen to the server
 
 const mongoose = require('mongoose')
+require('dotenv').config()
 
 const connectDB = async()=> {
-    await mongoose.connect('mongodb+srv://uditn007:oPPKRVthg5HBn5P8@uditscluster.dskk5dk.mongodb.net/Bloomy')
+    await mongoose.connect(process.env.DATABASE_URL)
 }
 
 module.exports = connectDB
