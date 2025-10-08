@@ -2,9 +2,12 @@ const express = require("express")
 const {validateSignupData} = require("../utils/validation")
 const bcrypt = require('bcrypt')
 const User = require('../models/user')
+const {userAuth} = require("../middlewares/auth")
+
 
 const authRouter = express.Router()
 
+//signup
 authRouter.post('/signup', async(req, res) => {
     try{
     const {firstName, lastName, email, password, age, skill} = req.body
@@ -51,7 +54,7 @@ authRouter.post('/login', async (req,res) => {
             const token = await userObj.getJwt();
             // add the token into the cookie and send back the response to the client
             res.cookie("token", token)
-            
+
             res.send("user logged in successfully")
         }
         else{
@@ -59,6 +62,17 @@ authRouter.post('/login', async (req,res) => {
         }
     }catch(error){
         res.send(`Something went wrong : ${error.message}`)
+    }
+})
+
+//logout
+authRouter.post('/logout', userAuth, async(req,res) => {
+    try{
+        res.clearCookie('token', {secure:true});
+        res.send("logged out successfully")
+    }
+    catch(error){
+        res.status(400).send("Something went wrong" + error.message)
     }
 })
 
