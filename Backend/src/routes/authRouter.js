@@ -1,5 +1,5 @@
 const express = require("express")
-const {userAuth} = require("./middlewares/auth")
+const {validateSignupData} = require("./utils/validation")
 
 const authRouter = express.Router()
 

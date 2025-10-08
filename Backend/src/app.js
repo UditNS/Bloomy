@@ -1,7 +1,6 @@
 const connectDB = require('./config/database')
 const express = require('express')
 const app = express();
-const {validateSignupData} = require("./utils/validation")
 const bcrypt = require('bcrypt')
 const cookieParser = require('cookie-parser')
 const {userAuth} = require("./middlewares/auth")
