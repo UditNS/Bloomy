@@ -1,5 +1,7 @@
 const express = require("express")
-const {validateSignupData} = require("./utils/validation")
+const {validateSignupData} = require("../utils/validation")
+const bcrypt = require('bcrypt')
+const User = require('../models/user')
 
 const authRouter = express.Router()
 
@@ -49,6 +51,7 @@ authRouter.post('/login', async (req,res) => {
             const token = await userObj.getJwt();
             // add the token into the cookie and send back the response to the client
             res.cookie("token", token)
+            
             res.send("user logged in successfully")
         }
         else{

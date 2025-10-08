@@ -1,40 +1,25 @@
-const connectDB = require('./config/database')
 const express = require('express')
-const app = express();
-const bcrypt = require('bcrypt')
+const connectDB = require('./config/database')
 const cookieParser = require('cookie-parser')
-const {userAuth} = require("./middlewares/auth")
 // userModel
 const User = require('./models/user')
 
+const app = express();
 
 // convert json into js object
 app.use(express.json());
 app.use(cookieParser())
 
 
-//profile
-app.get('/profile',userAuth, async (req, res) => {
-    try{
-        const user= req.user
-        res.send(user)
-    }catch(error){
-        res.status(400).send("error occured : " + error.message)
-    }
+// routes
+const authRoute = require("./routes/authRouter")
+const profileRoute = require("./routes/profileRouter")
+const requestRoute = require("./routes/requestRouter")
 
-})
-
-// sent connection request
-app.post('/sendConnectionRequest', userAuth, async (req,res) => {
-    try{
-        const user = req.user;
-
-        res.send(`${user.firstName} sent you the request`);
-    }
-    catch(error){
-        res.status(400).send("Something went wrong : " + error.message)
-    }
-})
+// using the routes
+app.use('/', authRoute)
+app.use('/profile', profileRoute)
+app.use('/user', requestRoute)
 
 
 // get user by email (find a user )
