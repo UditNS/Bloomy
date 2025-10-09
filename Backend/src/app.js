@@ -71,35 +71,6 @@ app.use('/delete', async(req,res) => {
     }
 })
 
-// Update API
-app.patch('/update', async(req,res) => {
-    const userId = req.body._id
-    const data = req.body // data which needed to be changed
-
-    const ALLOWED_UPDATES = [
-        "userId","photoUrl", "description", "gender", "age", "skills"
-    ]
-
-    
-
-    try{
-        const isUpdateAllowed = Object.keys(data).every((k) => {
-        ALLOWED_UPDATES.includes(k);
-        })
-        if(!isUpdateAllowed){
-            throw new Error("Update not allowed")
-        }
-        // here data also consist the _id but we didn't define it in schema. So, it will be ignored by mongodb
-        const user = await User.findByIdAndUpdate({_id: userId}, data, {
-            returnDocument: "after", // it will return the updated document
-            runValidators: true // this will run validation 
-        });
-        res.send("user updated successfully")
-    }catch(err){
-        res.status(500).send(`something went wrong ${err.message}`)
-    }
-})
-
 connectDB().then(()=>{
     console.log('db connect successfully')
     // once my db is connected successfully then only I will listen to the server(this is the proer way of db connect)
