@@ -14,9 +14,9 @@ const connectionSchema = new mongoose.Schema({
         required: true,
         // you create a enum when you want to restrict the user to some values
         enum: {
-            values: ["accepted", "interested", "rejected", "ignored"],
-            // ignored -> block & intrested -> pending
-            message: `${value} is incorrect status type`
+            values: ["like", "pass", "accepted", "rejected"],
+            // ignored -> pass & intrested -> like
+            message: `value is incorrect status type`
         }
     }
 }, {

@@ -69,7 +69,7 @@ profileRouter.patch('/resetPassword', userAuth, async (req, res) => {
             const updatedPassword = await bcrypt.hash(newPassword, 10);
             const {_id} = req.user;
 
-            const update = await User.findByIdAndUpdate((_id), {password: updatedPassword})
+            const update = await User.findByIdAndUpdate((_id), {password: updatedPassword}, {new: true})
 
             res.send("password Changed successfully")
 

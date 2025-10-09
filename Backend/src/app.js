@@ -19,7 +19,7 @@ const requestRoute = require("./routes/requestRouter")
 // using the routes
 app.use('/', authRoute)
 app.use('/profile', profileRoute)
-app.use('/user', requestRoute)
+app.use('/connection', requestRoute)
 
 
 // get user by email (find a user )
