@@ -14,6 +14,7 @@ const userSchema = new mongoose.Schema({
     },
     lastName : {
         type: String,
+        required : true,
         minLength : 4,
         maxLength: 25,
         trim: true
@@ -40,7 +41,7 @@ const userSchema = new mongoose.Schema({
     gender : {
         type: String,
         trim: true,
-        // by default this validate ethod is only called when the user is created. If we update the userDetails then this fn will not be called and we can put anything inside it.
+        // by default this validate method is only called when the user is created. If we update the userDetails then this fn will not be called and we can put anything inside it.
         validate : (val) => {
             if(!["male", "female", "other"].includes(val)){
                 throw new Error("Gender is not valid ")

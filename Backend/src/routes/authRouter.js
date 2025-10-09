@@ -33,7 +33,6 @@ authRouter.post('/signup', async(req, res) => {
     catch(error){
         res.status(500).send("error occured : " + error.message)
     }
-
     // In the database there are two other fields (__v, _id) -> these are created by mongodb
     // _id -> unique id 
 })

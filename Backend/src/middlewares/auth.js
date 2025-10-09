@@ -51,7 +51,7 @@ const userAuth = async (req, res, next) => {
         // STEP 4: Attach user to request object
         // Makes authenticated user data available to next middleware/route handler
         // Now you can access req.user in your protected routes
-        req.user = user;
+        req.user = user;// passing in the user in the request body
         
         // Pass control to next middleware or route handler
         next()
