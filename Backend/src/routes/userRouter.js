@@ -54,7 +54,12 @@ userRouter.get('/connections', userAuth, async (req, res) => {
         // i want to show only the other user details -> if loggedIn user is the sender then show the reciever details vice versa
         
         // if no connections    
-        const data = connections.map((connection) => connection.fromUserId)
+        const data = connections.map((connection) =>{
+            if(connection.fromUserId._id.equals(loggedInUserId)){
+                return connection.toUserId
+            }
+            return connection.fromUserId
+        })
 
         if(!connections) {
             res.json({
@@ -63,7 +68,7 @@ userRouter.get('/connections', userAuth, async (req, res) => {
         }
         res.json({
             message: "connections fetched successfully",
-            data : data
+            data
         })
     }
     catch(error){
