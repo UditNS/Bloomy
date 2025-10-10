@@ -83,11 +83,15 @@ userRouter.get('/connections', userAuth, async (req, res) => {
 // then when user scrolls down we fetch more profiles
 // so this api should support pagination
 // GET /user/feed?skip=20&limit=20
-userRouter.get('/feed', userAuth, async(req, res) => {
+userRouter.get('/feed?page=1&limit=10:', userAuth, async(req, res) => {
     // I don't want that the loggedIn user to show his profile
     // I don't want to show the loggedIn user to show the profiles in which he marked the status as 'rejected' or 'like' or 'accepted'
+    try{   
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit; // formula for skip
+        limit = limit>50 ? 50 : limit
 
-    try{    
         const logUser = req.user;
         // finding all connections
         const connectionRequest = await Connection.find({
@@ -107,8 +111,8 @@ userRouter.get('/feed', userAuth, async(req, res) => {
         const users = await User.find({
             _id : {$nin : Array.from(hideUserFromFeed)} // converting set into array
             // nin -> not in
-        }).select(USER_SECRET)
-        console.log(users)
+        }).select(USER_SECRET).skip(skip).limit(limit)
+
         res.send(users);
     }
     catch(error) {
