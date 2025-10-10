@@ -64,5 +64,46 @@ requestRouter.post('/send/:status/:toUserId', userAuth, async (req, res) => {
     }
 });
 
+requestRouter.post('/recieve/:status/:requestId', userAuth, async (req, res) => {
+    try{
+        const logUser = req.user;
+        const status = req.params.status;
+        const requestId = req.params.requestId;
+
+        // status check
+        const allowedStatus = ["accepted", "rejected"]
+        if(!allowedStatus.includes(status)){
+            return res.status(400).json({
+                message: "Status is not allowed"
+            })
+        }
+
+        // finding the request onto the db
+        const requests = await Connection.findOne({
+            _id : requestId,
+            toUserId : logUser._id,
+            status : 'likes'
+        });
+
+        if(!requests){
+            return res.status(404).json({message: "Request Not found"})
+        }
+
+        requests.status = status; //from params
+
+        const data = await requests.save();
+
+        res.json({message : "connection request is " + status});
+
+        // we only list the request which has status as like. We don't show if it is pass.
+        // other case can be the request id is invalid
+
+    }catch(error){
+        res.status(400).send("Something went wrong : " + error.message)
+    }
+    
+
+})
+
 
 module.exports = requestRouter;
