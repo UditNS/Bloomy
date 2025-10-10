@@ -4,6 +4,7 @@ const connectionSchema = new mongoose.Schema({
     fromUserId : {
         type : mongoose.Schema.Types.ObjectId, // we are storing the _id
         required: true,
+        ref: "User", // creating a reference(link) between connection and user collection
     },
     toUserId : {
         type : mongoose.Schema.Types.ObjectId, // we are storing the _id

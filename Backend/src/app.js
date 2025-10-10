@@ -15,12 +15,13 @@ app.use(cookieParser())
 const authRoute = require("./routes/authRouter")
 const profileRoute = require("./routes/profileRouter")
 const requestRoute = require("./routes/requestRouter")
+const userRoute = require('./routes/userRouter')
 
 // using the routes
 app.use('/', authRoute)
 app.use('/profile', profileRoute)
 app.use('/connection', requestRoute)
-
+app.use('/user', userRoute)
 
 // get user by email (find a user )
 app.get('/user', async(req, res) => {
