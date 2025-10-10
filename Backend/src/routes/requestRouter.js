@@ -24,7 +24,7 @@ requestRouter.post('/send/:status/:toUserId', userAuth, async (req, res) => {
             throw new Error(`Invalid status type : ${status}`)
         }
         // checking the toUserId should present in db
-        const checkToUser = await User.findById(toUserId);
+        const checkToUser = await User.findById(toUserId);// this is an expensive operation. 
         if(!checkToUser){
             return res.status(400).send({message : "User not exist to which you are trying to send the connection request"})
         }

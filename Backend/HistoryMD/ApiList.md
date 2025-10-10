@@ -9,8 +9,8 @@
 6. PATCH /profile/password
  
 ##Connection request router
-7. POST /request/recieve/like/:senderId
-8. POST /request/recieve/pass/:sendId
+7. POST /request/recieve/like/:senderId -> reciever accepted the request
+8. POST /request/recieve/pass/:sendId. -> reciever rejected the request
 9. POST /request/send/like/:userId -> you like the dev
 10. POST /request/send/pass/:userId -> you dislike the dev
 

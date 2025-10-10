@@ -23,6 +23,9 @@ const connectionSchema = new mongoose.Schema({
     timestamps : true,
 }
 ) 
+// Adding indexing to reduce .find operation
+connectionSchema.index({fromUserId:1, toUserId: 1}) // 1->ascending, -1-> descending
+
 // called when ever a new request created
 // this function is kind of a middleware -> calling next()
 connectionSchema.pre("save", function(next) {
