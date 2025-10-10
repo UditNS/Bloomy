@@ -39,7 +39,37 @@ userRouter.get('/requests', userAuth, async (req, res) => {
 })
 
 // getting the connections of a user
+userRouter.get('/connections', userAuth, async (req, res) => {
+    try{
+        const loggedInUserId = req.user._id;
 
+        const connections = await Connection.find({
+            $or : [
+                {toUserId : loggedInUserId, status: "accepted"},
+                {fromUserId : loggedInUserId, status: "accepted"}
+            ]   
+        }).populate("toUserId", "firstName lastName photo age gender skill description")
+        .populate("fromUserId", "firstName lastName photo age gender skill description")
+        // the connections is giving too much data -> i want to filter it
+        // i want to show only the other user details -> if loggedIn user is the sender then show the reciever details vice versa
+        
+        // if no connections    
+        const data = connections.map((connection) => connection.fromUserId)
+
+        if(!connections) {
+            res.json({
+                message : "No connections"
+            })
+        }
+        res.json({
+            message: "connections fetched successfully",
+            data : data
+        })
+    }
+    catch(error){
+        res.status(400).send("Something went wrong " + error.message)
+    }
+}) 
 
 userRouter.get('/feed', userAuth, async(req, res) => {
     // I don't want that the loggedIn user to show his profile
