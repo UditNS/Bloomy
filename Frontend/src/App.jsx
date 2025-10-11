@@ -1,11 +1,39 @@
-import react from 'react'
+import React from "react";
+import NavBar from "./components/navBar/NavBar";
+import { ThemeProvider } from "./components/navBar/ThemeProvider";
+import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider } from "react-router";
+import Login from "./components/login/Login";
+import Layout from "./Layout";
 
 function App() {
+  const router = createBrowserRouter(
+    createRoutesFromElements(
+      <Route path = '/' element = {<Layout />}>
+        <Route path = '/login' element = {<Login />}></Route>
+        {/* <Route path = '/profile' element = {<Profile />}></Route> */}
+        {/* <Route loader={gitInfoLoader} path = '/github' element = {<Github />}></Route> */}
+      </Route>
+    )
+  )
   return (
     <>
-      <h1 className='bg-green-500'>hello all</h1>
+      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+        <RouterProvider router = {router}/>
+      </ThemeProvider>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
+
+
+/*
+Flow of the app
+Body
+  NavBar
+  Route = '/' -> Feed
+  Route = '/login' -> Login
+  Route = '/connection' -> Connections
+  Route = '/profile' -> profile page
+
+*/
