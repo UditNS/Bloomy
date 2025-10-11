@@ -83,7 +83,7 @@ userRouter.get('/connections', userAuth, async (req, res) => {
 // then when user scrolls down we fetch more profiles
 // so this api should support pagination
 // GET /user/feed?skip=20&limit=20
-userRouter.get('/feed?page=1&limit=10:', userAuth, async(req, res) => {
+userRouter.get('/feed', userAuth, async(req, res) => {
     // I don't want that the loggedIn user to show his profile
     // I don't want to show the loggedIn user to show the profiles in which he marked the status as 'rejected' or 'like' or 'accepted'
     try{   

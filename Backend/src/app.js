@@ -3,9 +3,11 @@ const connectDB = require('./config/database')
 const cookieParser = require('cookie-parser')
 // userModel
 const User = require('./models/user')
-
+const cors = require('cors')
 const app = express();
 
+// cors will be added be before everything
+app.use(cors())
 // convert json into js object
 app.use(express.json());
 app.use(cookieParser())
