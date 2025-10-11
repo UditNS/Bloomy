@@ -11,10 +11,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useSelector } from "react-redux";
 
 function NavBar() {
+    const user = useSelector((store) => (store.user))
+    console.log(user)
+    
   return (
-    <div className="flex sticky top-0 justify-between items-center py-2 px-4 ">
+    <div className="flex fixed top-0 w-full justify-between items-center py-2 px-4 ">
       <div className="mx-2">
         <Link to="/">
           <img src={logo} className="ml-2 w-36 h-11" />
@@ -22,12 +26,12 @@ function NavBar() {
       </div>
       <div className="flex gap-3 mr-4">
          <ModeToggle />
-        <DropdownMenu>
+        {user && <DropdownMenu>
             <DropdownMenuTrigger>
                 <Avatar className="rounded-lg">
                     <AvatarImage
-                        src="https://github.com/evilrabbit.png"
-                        alt="@evilrabbit"
+                        src={user.photo}
+                        alt="user display pic"
                     />
                     <AvatarFallback>ER</AvatarFallback>
                 </Avatar>
@@ -40,7 +44,7 @@ function NavBar() {
                 <DropdownMenuItem>Team</DropdownMenuItem>
                 <DropdownMenuItem>Subscription</DropdownMenuItem>
             </DropdownMenuContent>
-        </DropdownMenu>
+        </DropdownMenu>}
       </div>
     </div>
   );
