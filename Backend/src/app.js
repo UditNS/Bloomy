@@ -7,7 +7,11 @@ const cors = require('cors')
 const app = express();
 
 // cors will be added be before everything
-app.use(cors())
+app.use(cors({
+    // these are required to set the cookies onto the browser. Because browser only allow cookies to set when it is a https request. In production it works fine. We done this here to test the app in build
+    origin: "http://localhost:5173",
+    credentials: true
+}))
 // convert json into js object
 app.use(express.json());
 app.use(cookieParser())
