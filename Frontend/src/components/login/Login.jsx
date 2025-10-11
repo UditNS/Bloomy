@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import axios from 'axios'
-import LoginBg from "../../assets/Login_bg.png"
+
 import {
   Field,
   FieldDescription,
@@ -21,7 +21,7 @@ function Login() {
             const res = await axios.post("http://localhost:3000/login", {
                 email,
                 password
-            })
+            }, {withCredentials: true}) // required this to set the cookies
         }
         catch(error){
             console.log(error.message)
