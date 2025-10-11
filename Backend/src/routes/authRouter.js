@@ -54,7 +54,7 @@ authRouter.post('/login', async (req,res) => {
             // add the token into the cookie and send back the response to the client
             res.cookie("token", token)
 
-            res.send("user logged in successfully")
+            res.send(userObj)
         }
         else{
             throw new Error("Email id or password is incorrect")
