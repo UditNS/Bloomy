@@ -8,7 +8,7 @@ import Layout from "./Layout";
 function App() {
   const router = createBrowserRouter(
     createRoutesFromElements(
-      <Route path = '/' element = {<Layout />}>
+        <Route path = '/' element = {<Layout />}>
         <Route path = '/login' element = {<Login />}></Route>
         {/* <Route path = '/profile' element = {<Profile />}></Route> */}
         {/* <Route loader={gitInfoLoader} path = '/github' element = {<Github />}></Route> */}
