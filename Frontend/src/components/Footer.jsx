@@ -9,7 +9,7 @@ function Footer() {
           {/* Copyright */}
           <div className="text-center md:text-left">
             <p className="text-sm text-gray-400">
-              © 2024 Bloomy, Inc. All rights reserved.
+              © 2025 Bloomy, Inc. All rights reserved.
             </p>
           </div>
 
