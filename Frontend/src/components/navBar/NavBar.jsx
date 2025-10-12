@@ -19,7 +19,6 @@ import { removeUser } from "../../utils/userSlice";
 function NavBar() {
     const dispatch = useDispatch()
     const user = useSelector((store) => (store.user))
-    console.log(user)
     
     const handleLogout = async () => {
       try{
@@ -31,14 +30,14 @@ function NavBar() {
     }
 
   return (
-    <div className="flex fixed top-0 w-full justify-between items-center py-2 px-4 ">
+    <div className="flex fixed top-0 w-full justify-between items-center py-2 px-4 border-b-2 z-20 bg-background">
       <div className="mx-2">
         <Link to="/">
           <img src={logo} className="ml-2 w-36 h-11" />
         </Link>
       </div>
       <div className="flex gap-3 mr-4">
-         <ModeToggle />
+        <ModeToggle />
         {user && <DropdownMenu>
             <DropdownMenuTrigger>
                 <Avatar className="rounded-lg">
