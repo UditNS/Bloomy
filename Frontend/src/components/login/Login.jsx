@@ -4,7 +4,8 @@ import LoginImg from '../../assets/Login.png'
 import gsap from 'gsap'
 import { useGSAP } from '@gsap/react'
 import { addUser } from '../../utils/userSlice'
-
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import {AlertCircleIcon} from 'lucide-react'
 import {
     Field,
     FieldGroup,
@@ -20,6 +21,7 @@ import { BASE_URL } from '../../utils/constant'
 function Login() {
     const [email, setEmail] = useState("sydney2@gmail.com");
     const [password, setPassword] = useState("Sydney@1234")
+    const [error, setError] = useState("")
     const dispatch = useDispatch()
     const navigate = useNavigate()
     
@@ -32,10 +34,12 @@ function Login() {
                 password
             }, {withCredentials: true}) // required this to set the cookies
             dispatch(addUser(res.data))
-                navigate('/')
+            setError("")
+            navigate('/')
         }
         catch(error){
-            console.log(error.message)
+            setError(error?.response?.data?.message || "Something went wrong")
+            console.log(error)
         }
     }
     useGSAP(() => {
@@ -100,7 +104,16 @@ function Login() {
                         </Field>
                     </FieldGroup>
                 </FieldSet>
-                
+                {/* Alert : error */}
+                {error && <Alert variant="destructive" className="mt-4">
+                        <AlertCircleIcon />
+                        <AlertTitle>Heads up!</AlertTitle>
+                        <AlertDescription>
+                            {error}
+                        </AlertDescription>
+
+                    
+                </Alert>}
                 {/* Login Button */}
                 <Button 
                     onClick={handleLogin} 

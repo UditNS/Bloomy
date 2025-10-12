@@ -11,12 +11,25 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import axios from "axios";
+import { BASE_URL } from "../../utils/constant";
+import { removeUser } from "../../utils/userSlice";
 
 function NavBar() {
+    const dispatch = useDispatch()
     const user = useSelector((store) => (store.user))
     console.log(user)
     
+    const handleLogout = async () => {
+      try{
+        await axios.post(BASE_URL + '/logout', {}, {withCredentials: true})
+        dispatch(removeUser());
+      }catch(error){
+        console.log(error.message)
+      }
+    }
+
   return (
     <div className="flex fixed top-0 w-full justify-between items-center py-2 px-4 ">
       <div className="mx-2">
@@ -42,10 +55,10 @@ function NavBar() {
             <DropdownMenuContent>
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Profile</DropdownMenuItem>
-                <DropdownMenuItem>Billing</DropdownMenuItem>
-                <DropdownMenuItem>Team</DropdownMenuItem>
-                <DropdownMenuItem>Subscription</DropdownMenuItem>
+                <Link to='/profile'><DropdownMenuItem>Profile</DropdownMenuItem></Link>
+                
+                <DropdownMenuItem>Connections</DropdownMenuItem>
+                <Link to='/login' onClick={handleLogout}><DropdownMenuItem>Log out</DropdownMenuItem></Link>
             </DropdownMenuContent>
         </DropdownMenu>}
       </div>
