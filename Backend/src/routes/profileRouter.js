@@ -19,7 +19,7 @@ profileRouter.patch('/edit', userAuth, async (req, res) => {
     const data = req.body // data which needed to be changed
 
     const ALLOWED_UPDATES = [
-        "firstName", "lastName", "photoUrl", "description", "gender", "age", "skill"
+        "firstName", "lastName", "photo", "description", "gender", "age", "skill"
     ]
 
     try{

@@ -10,7 +10,7 @@ const authRouter = express.Router()
 //signup
 authRouter.post('/signup', async(req, res) => {
     try{
-    const {firstName, lastName, email, password, age, skill} = req.body
+    const {firstName, lastName, email, password, age, gender, skill} = req.body
     // validation
     validateSignupData(req);
 
@@ -23,6 +23,7 @@ authRouter.post('/signup', async(req, res) => {
         lastName,
         email,
         age,
+        gender,
         skill,
         password: hashPassword
     }) // creating a new data with userObj
