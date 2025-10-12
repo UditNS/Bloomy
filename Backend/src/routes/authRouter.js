@@ -47,13 +47,12 @@ authRouter.post('/login', async (req,res) => {
             throw new Error("Email id or password is incorrect")
         }
 
-        const checkCrediential = userObj.passwordCheck(password);
+        const checkCrediential = await userObj.passwordCheck(password);
         if(checkCrediential){
             // create a jwt token
             const token = await userObj.getJwt();
             // add the token into the cookie and send back the response to the client
             res.cookie("token", token)
-
             res.send(userObj)
         }
         else{

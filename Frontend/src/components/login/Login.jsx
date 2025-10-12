@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import axios from 'axios'
 import LoginImg from '../../assets/Login.png'
-import Logo from '../../assets/Logo.png'
+import gsap from 'gsap'
+import { useGSAP } from '@gsap/react'
 import { addUser } from '../../utils/userSlice'
 
 import {
@@ -17,8 +18,8 @@ import { useNavigate } from 'react-router'
 import { BASE_URL } from '../../utils/constant'
 
 function Login() {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("")
+    const [email, setEmail] = useState("sydney@gmail.com");
+    const [password, setPassword] = useState("Sydney@1234")
     const dispatch = useDispatch()
     const navigate = useNavigate()
     //this will handle the api call for login -> using axios(fetch can also be used)
@@ -30,19 +31,27 @@ function Login() {
                 password
             }, {withCredentials: true}) // required this to set the cookies
             dispatch(addUser(res.data))
+            console.log(res.data)
             navigate('/')
         }
         catch(error){
             console.log(error.message)
         }
     }
-
+    useGSAP(() => {
+        gsap.from('.img', {
+            opacity:0,
+            duration:0.8,
+            ease: "sine.inOut",
+            y: 200
+        })
+    })
     return (
     <div className="flex items-center justify-center min-h-screen p-4">
     {/* Card with glow effect */}
-    <div className="relative group">
+    <div className="relative group img">
         {/* Animated glow border */}
-        <div className="absolute -inset-1 bg-gradient-to-r from-pink-600 to-purple-600 rounded-xl blur-lg opacity-75 group-hover:opacity-100 group-hover:blur-xl transition duration-500"></div>
+        <div className="absolute -inset-1 bg-gradient-to-r from-pink-500 to-purple-700 rounded-xl blur-lg opacity-75 group-hover:opacity-100 group-hover:blur-xl transition duration-500 "></div>
         
         {/* Main content container */}
         <div className="relative flex flex-col md:flex-row bg-white dark:bg-black rounded-xl overflow-hidden">

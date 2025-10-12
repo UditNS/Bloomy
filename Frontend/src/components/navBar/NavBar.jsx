@@ -30,10 +30,13 @@ function NavBar() {
             <DropdownMenuTrigger>
                 <Avatar className="rounded-lg">
                     <AvatarImage
-                        src={user.photo}
+                        src={user?.photo}
                         alt="user display pic"
                     />
-                    <AvatarFallback>ER</AvatarFallback>
+                    <AvatarFallback>
+                        {user?.firstName?.[0]?.toUpperCase() || 'U'}
+                        {user?.lastName?.[0]?.toUpperCase() || ''}
+                    </AvatarFallback>
                 </Avatar>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
