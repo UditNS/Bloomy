@@ -41,10 +41,16 @@ authRouter.post('/signup', async(req, res) => {
 authRouter.post('/login', async (req,res) => {
     try{
         const {email, password} = req.body
+        if (!email || !password) {
+            return res.status(400).json({ error: "Email and password are required" });
+        }
 
         const userObj = await User.findOne({ email:email })
         if(!userObj){
-            throw new Error("Email id or password is incorrect")
+            return res.status(401).json({
+                success: false,
+                message: "Invalid email or password"
+            });
         }
 
         const checkCrediential = await userObj.passwordCheck(password);
@@ -56,7 +62,10 @@ authRouter.post('/login', async (req,res) => {
             res.send(userObj)
         }
         else{
-            throw new Error("Email id or password is incorrect")
+            return res.status(401).json({
+                success: false,
+                message: "Invalid email or password"
+            });
         }
     }catch(error){
         res.send(`Something went wrong : ${error.message}`)

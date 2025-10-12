@@ -36,7 +36,7 @@ const userAuth = async (req, res, next) => {
         // - Token hasn't expired
         // - Token was signed with our SECRET_KEY
         // Returns decoded payload (contains user _id)
-        const decodedObj = await jwt.verify(token, process.env.SECRET_KEY);
+        const decodedObj = jwt.verify(token, process.env.SECRET_KEY);
         
         // STEP 3: Find user in database
         // Extract user ID from decoded token payload
@@ -45,7 +45,7 @@ const userAuth = async (req, res, next) => {
         const user = await User.findById(_id)
         
         if(!user) {
-            throw new Error("user not found");
+            return res.status(401).json({ error: "Unauthorized - User not found" });
         }
         
         // STEP 4: Attach user to request object
@@ -61,7 +61,7 @@ const userAuth = async (req, res, next) => {
         // - Missing token
         // - Invalid/expired token
         // - User not found in database
-        res.send("Error occured : " + error)
+        return res.status(401).json({ error: "Unauthorized: " + error.message });
     }
 }
 

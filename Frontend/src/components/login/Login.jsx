@@ -13,15 +13,16 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router'
 import { BASE_URL } from '../../utils/constant'
 
 function Login() {
-    const [email, setEmail] = useState("sydney@gmail.com");
+    const [email, setEmail] = useState("sydney2@gmail.com");
     const [password, setPassword] = useState("Sydney@1234")
     const dispatch = useDispatch()
     const navigate = useNavigate()
+    
     //this will handle the api call for login -> using axios(fetch can also be used)
     const handleLogin = async (e) => {
         e.preventDefault()
@@ -31,8 +32,7 @@ function Login() {
                 password
             }, {withCredentials: true}) // required this to set the cookies
             dispatch(addUser(res.data))
-            console.log(res.data)
-            navigate('/')
+                navigate('/')
         }
         catch(error){
             console.log(error.message)

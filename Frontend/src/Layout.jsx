@@ -7,10 +7,13 @@ import { BASE_URL } from './utils/constant'
 import { useDispatch } from 'react-redux'
 import { addUser } from './utils/userSlice'
 import { useNavigate } from 'react-router'
+import { useSelector } from 'react-redux'
 
 function Layout() {
   const dispatch = useDispatch();
   const navigate = useNavigate()
+  const user = useSelector((store) => (store.user))
+
   const fetchUser = async () => {
     // whenever the page reloads the user from the store vanished which causes error in loading the profile pic
     try {
@@ -26,7 +29,9 @@ function Layout() {
   }
 
   useEffect(() => {
-    fetchUser();
+    if(!user){
+      fetchUser();
+    }
   }, [])
   return (
     <>
