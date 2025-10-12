@@ -38,16 +38,19 @@ const userSchema = new mongoose.Schema({
         min: 18,
         max: 130
     },
-    gender : {
+    gender: {
         type: String,
         trim: true,
-        // by default this validate method is only called when the user is created. If we update the userDetails then this fn will not be called and we can put anything inside it.
-        validate : (val) => {
-            if(!["male", "female", "other"].includes(val)){
-                throw new Error("Gender is not valid ")
-            }
-        }
-    },
+        lowercase: true, // Add this to normalize the input
+        validate: {
+            validator: function(val) {
+            // Allow empty/undefined values if gender is optional
+        if (!val) return true;
+            return ["male", "female", "other"].includes(val);
+        },
+    message: "Gender must be either male, female, or other"
+    }
+    }, 
     photo: {
         type: String,
         default : "https://avatars.mds.yandex.net/i?id=0e8e5432af0aa80f3182168e6530f089e9f45080-5231722-images-thumbs&n=13"
@@ -60,8 +63,8 @@ const userSchema = new mongoose.Schema({
     skill : {
         type : [String], // array of strings
         validate : (val) => {
-            if(val.length > 30){
-                throw new Error("Only 30 skills are allowed")
+            if(val.length > 10){
+                throw new Error("Only 10 skills are allowed")
             }
         }
     }
