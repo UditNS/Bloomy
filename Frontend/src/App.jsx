@@ -6,6 +6,7 @@ import Login from "./components/login/Login";
 import Layout from "./Layout";
 import Feed from "./components/feed/Feed";
 import Profile from "./components/profile/Profile";
+import Connection from "./components/connections/Connection";
 
 function App() {
   const router = createBrowserRouter(
@@ -13,7 +14,10 @@ function App() {
         <Route path = '/' element = {<Layout />}>
           <Route path = '/' element = {<Feed />}></Route>
           <Route path = '/login' element = {<Login />}></Route>
-        <Route path = '/profile' element = {<Profile />}></Route>
+          <Route path = '/profile' element = {<Profile />}></Route>
+          <Route path = '/connection' element={<Connection />}></Route>
+          <Route path = '/requests' element={<Connection />}></Route>
+
         {/* <Route loader={gitInfoLoader} path = '/github' element = {<Github />}></Route> */}
       </Route>
     )

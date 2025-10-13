@@ -52,11 +52,11 @@ function NavBar() {
                 </Avatar>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuLabel>{`👋 Hey, ${user?.firstName} `}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <Link to='/profile'><DropdownMenuItem>Profile</DropdownMenuItem></Link>
-                
-                <DropdownMenuItem>Connections</DropdownMenuItem>
+                <Link to='/connection'><DropdownMenuItem>Connections</DropdownMenuItem></Link>
+                <Link to='/request'><DropdownMenuItem>Requests</DropdownMenuItem></Link>
                 <Link to='/login' onClick={handleLogout}><DropdownMenuItem>Log out</DropdownMenuItem></Link>
             </DropdownMenuContent>
         </DropdownMenu>}
