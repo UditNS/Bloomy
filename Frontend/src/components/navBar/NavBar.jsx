@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router"; 
+import { Link, useNavigate } from "react-router"; 
 import { ModeToggle } from "./ModeToggle";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import {
@@ -18,6 +18,7 @@ import { User, Users, Bell, LogOut } from "lucide-react";
 
 function NavBar() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const user = useSelector((store) => store.user);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -25,6 +26,8 @@ function NavBar() {
     try {
       await axios.post(BASE_URL + "/logout", {}, { withCredentials: true });
       dispatch(removeUser());
+      navigate('/login')
+
     } catch (error) {
       console.log(error.message);
     }
