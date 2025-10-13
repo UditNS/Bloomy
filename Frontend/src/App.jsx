@@ -7,7 +7,7 @@ import Layout from "./Layout";
 import Feed from "./components/feed/Feed";
 import Profile from "./components/profile/Profile";
 import Connection from "./components/connections/Connection";
-
+import Request from "./components/requests/Request";
 function App() {
   const router = createBrowserRouter(
     createRoutesFromElements(
