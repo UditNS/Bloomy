@@ -59,7 +59,11 @@ authRouter.post('/login', async (req,res) => {
             // create a jwt token
             const token = await userObj.getJwt();
             // add the token into the cookie and send back the response to the client
-            res.cookie("token", token)
+            res.cookie("token", token, {
+                httpOnly: true,
+                sameSite: "lax",
+                secure: false
+            });
             res.send(userObj)
         }
         else{

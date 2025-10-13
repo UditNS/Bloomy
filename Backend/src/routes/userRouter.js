@@ -4,7 +4,7 @@ const User = require("../models/user");
 const Connection = require("../models/connection")
 const { userAuth } = require("../middlewares/auth");
 
-const USER_SECRET = ["firstName", "lastName", "age", "gender", "skill", "description"]
+const USER_SECRET = ["firstName", "lastName", "age", "gender", "photo", "skill", "description"]
 // Tasks
 // GET /user/feed -> fetches 20-30 profiles at a time(again fetch more profile)
 // GET /user/Connections
