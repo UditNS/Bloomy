@@ -1,17 +1,21 @@
-import React, { useState } from 'react'
-import { X, Plus, Edit2, Save, XCircle } from 'lucide-react'
+import React, { useState, useRef } from 'react'
+import { X, Plus, Edit2, Save, XCircle, Upload } from 'lucide-react'
 import { useDispatch, useSelector } from 'react-redux'
 import axios from 'axios'
 import { BASE_URL } from '../../utils/constant'
 import { addUser } from '../../utils/userSlice'
 import { toast } from "sonner"
 import { Toaster } from "sonner"
-
+import { Spinner } from "@/components/ui/spinner"
+import ProfileSkeleton from './ProfileSkeleton'
+import SkillsEditor from './SkillsEditor'
 // Mock components
 const Field = ({ children, className }) => <div className={`space-y-2 ${className}`}>{children}</div>
 const FieldLabel = ({ children, htmlFor }) => <label htmlFor={htmlFor} className="text-sm font-medium">{children}</label>
 
 const Input = (props) => <input className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50" {...props} />
+
+// button component
 const Button = ({ children, variant = "default", ...props }) => {
   const baseClass = "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50 px-4 py-2"
   const variants = {
@@ -19,95 +23,36 @@ const Button = ({ children, variant = "default", ...props }) => {
     outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
     ghost: "hover:bg-accent hover:text-accent-foreground",
     destructive: "bg-red-500 text-white hover:bg-red-600",
-    gradient:"border border-input bg-gradient-to-r from-pink-600 to-purple-600 shadow-xs hover:bg-accent hover:text-accent-foreground dark:border-input dark:hover:bg-input/50",
+    gradient:"border border-input bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow-xs hover:from-pink-700 hover:to-purple-700",
   }
   return <button className={`${baseClass} ${variants[variant]}`} {...props}>{children}</button>
 }
 
+
 // Skills Component
-function SkillsEditor({ skills, setSkills, isEditing }) {
-  const [newSkill, setNewSkill] = useState('')
 
-  const addSkill = () => {
-    if (newSkill.trim() && !skills.includes(newSkill.trim())) {
-      setSkills([...skills, newSkill.trim()])
-      setNewSkill('')
-    }
-  }
-
-  const removeSkill = (skillToRemove) => {
-    setSkills(skills.filter(skill => skill !== skillToRemove))
-  }
-
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      addSkill()
-    }
-  }
-
-  return (
-    <div className="space-y-3">
-      <FieldLabel>Skills</FieldLabel>
-      
-      {/* Skills Display */}
-      <div className="flex flex-wrap gap-2 min-h-[40px] p-3 rounded-md border border-input bg-background">
-        {skills?.length === 0 ? (
-          <span className="text-sm text-muted-foreground">No skills added yet</span>
-        ) : (
-          skills?.map((skill, index) => (
-            <span
-              key={index}
-              className="inline-flex items-center gap-1 px-3 py-1 rounded-md text-sm font-medium bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
-            >
-              {skill}
-              {isEditing && (
-                <button
-                  onClick={() => removeSkill(skill)}
-                  className="hover:bg-purple-200 dark:hover:bg-purple-800 rounded-md p-0.5"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              )}
-            </span>
-          ))
-        )}
-      </div>
-
-      {/* Add Skill Input (only in edit mode) */}
-      {isEditing && (
-        <div className="flex gap-2">
-          <Input
-            type="text"
-            placeholder="Add a skill (e.g., React, Node.js)"
-            value={newSkill}
-            onChange={(e) => setNewSkill(e.target.value)}
-            onKeyPress={handleKeyPress}
-          />
-          <Button onClick={addSkill} variant="outline">
-            <Plus className="w-4 h-4 mr-1" />
-            Add
-          </Button>
-        </div>
-      )}
-    </div>
-  )
-}
 
 // Main Profile Component
 function Profile() {
-  // Mock user data
-  const User = useSelector((store) =>store.user)
+  const [uploading, setUploading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const fileInputRef = useRef(null)
+  const User = useSelector((store) => store.user)
 
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState(User)
+  const [saveData, setSaveData] = useState(false)
   const [skill, setSkill] = useState(User?.skill)
   const dispatch = useDispatch()
-  // Update formData and skills when User changes (e.g., after refresh/reload)
+
+
+  // Update formData and skills when User changes
   React.useEffect(() => {
     if (User) {
       setFormData(User)
       setSkill(User?.skill || [])
+      // Simulate loading time (remove this in production if not needed)
+      setTimeout(() => setIsLoading(false), 500)
     }
   }, [User])
 
@@ -122,9 +67,49 @@ function Profile() {
     setIsEditing(true)
   }
 
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file')
+      return
+    }
+
+    // Validate file size (max 2MB for Base64)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Image size should be less than 2MB')
+      return
+    }
+
+    setUploading(true)
+
+    try {
+      // Convert image to Base64
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        const base64String = reader.result
+        setFormData({ ...formData, photo: base64String })
+        toast.success('Photo selected. Click Save Changes to update.')
+        setUploading(false)
+      }
+      reader.onerror = () => {
+        toast.error('Failed to read image')
+        setUploading(false)
+      }
+      reader.readAsDataURL(file)
+    } catch (error) {
+      toast.error('Failed to upload photo')
+      setUploading(false)
+    }
+  }
+
   const handleSave = async () => {
-    const {firstName, lastName, photo, age, gender, description} = formData
-    try{
+    
+    try {
+      setSaveData(true);
+      const { firstName, lastName, photo, age, gender, description } = formData
       const res = await axios.patch(BASE_URL + '/profile/edit', {
         firstName,
         lastName,
@@ -133,14 +118,16 @@ function Profile() {
         photo,
         skill,
         description
-      }, {withCredentials: true})
+      }, { withCredentials: true })
       dispatch(addUser(res.data.user))
+
       toast.success("Changes saved successfully")
       setIsEditing(false)
-    }catch(error){
+      setSaveData(false)
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to save changes")
       console.log(error.message)
     }
-    
   }
 
   const handleCancel = () => {
@@ -149,15 +136,18 @@ function Profile() {
     setIsEditing(false)
   }
 
+  // Show skeleton while loading
+  if (isLoading || !User) {
+    return <ProfileSkeleton />
+  }
+
   return (
-    <div className="flex items-center justify-center min-h-screen w-full pt-20 pb-8 px-4  ">
-      
+    <div className="flex items-center justify-center min-h-screen w-full pt-20 pb-8 px-4">
       <div className="w-full relative max-w-4xl rounded-2xl shadow-xl overflow-hidden">
         <Toaster position="bottom-right" richColors />
 
         {/* Header Section */}
         <div className="relative h-32 bg-gradient-to-r from-purple-500 to-pink-500">
-          
           <div className="absolute -bottom-16 left-8">
             <div className="relative z-10">
               <img
@@ -166,9 +156,26 @@ function Profile() {
                 className="w-32 h-32 rounded-full border-4 border-white dark:border-gray-800 object-cover shadow-lg"
               />
               {isEditing && (
-                <button className="absolute bottom-0 right-0 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-white hover:bg-purple-700">
-                  <Edit2 className="w-4 h-4"/>
-                </button>
+                <>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhotoUpload}
+                    className="hidden"
+                  />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    className="absolute bottom-0 right-0 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-white hover:bg-purple-700 disabled:opacity-50"
+                  >
+                    {uploading ? (
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      <Upload className="w-4 h-4" />
+                    )}
+                  </button>
+                </>
               )}
             </div>
           </div>
@@ -188,7 +195,7 @@ function Profile() {
                 Cancel
               </Button>
               <Button onClick={handleSave} variant="gradient">
-                <Save className="w-4 h-4 mr-2" />
+                {saveData ? <Spinner /> : <Save className="w-4 h-4 mr-2" />}
                 Save Changes
               </Button>
             </div>
@@ -197,7 +204,7 @@ function Profile() {
 
         {/* Form Section */}
         <div className="p-8 pt-16 relative bg-card">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 ">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
             {/* First Name */}
             <Field>
@@ -224,8 +231,6 @@ function Profile() {
                 disabled={!isEditing}
               />
             </Field>
-
-            
 
             {/* Age */}
             <Field>
@@ -273,9 +278,9 @@ function Profile() {
 
             {/* Skills - Full Width */}
             <div className="md:col-span-2">
-              <SkillsEditor 
-                skills={skill} 
-                setSkills={setSkill} 
+              <SkillsEditor
+                skills={skill}
+                setSkills={setSkill}
                 isEditing={isEditing}
               />
             </div>
