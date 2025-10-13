@@ -53,7 +53,7 @@ const userSchema = new mongoose.Schema({
     }, 
     photo: {
         type: String,
-        default : "https://avatars.mds.yandex.net/i?id=0e8e5432af0aa80f3182168e6530f089e9f45080-5231722-images-thumbs&n=13"
+        default : "https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_1280.png"
     },
     description : {
         type: String,
