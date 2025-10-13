@@ -15,8 +15,8 @@ function App() {
           <Route path = '/' element = {<Feed />}></Route>
           <Route path = '/login' element = {<Login />}></Route>
           <Route path = '/profile' element = {<Profile />}></Route>
-          <Route path = '/connection' element={<Connection />}></Route>
-          <Route path = '/requests' element={<Connection />}></Route>
+          <Route path = '/connections' element={<Connection />}></Route>
+          <Route path = '/requests' element={<Request />}></Route>
 
         {/* <Route loader={gitInfoLoader} path = '/github' element = {<Github />}></Route> */}
       </Route>
