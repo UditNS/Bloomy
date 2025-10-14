@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { Users, Search, } from 'lucide-react'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
@@ -7,7 +7,8 @@ import ConnectionSkeleton from './ConnectionSkeleton'
 import axios from 'axios'
 import {BASE_URL} from '../../utils/constant'
 import {Link} from 'react-router'
-
+import search from '../../utils/search'
+import gsap from 'gsap'
 // Main Connections Component
 function Connection() {
   const [connections, setConnections] = useState([])
@@ -15,6 +16,24 @@ function Connection() {
   const [searchQuery, setSearchQuery] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   
+  const headerRef = useRef(null)
+  const searchRef = useRef(null)
+
+  useEffect(() => {
+    // Animate header on mount
+    gsap.fromTo(
+      headerRef.current,
+      { opacity: 0, y: -20 },
+      { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }
+    )
+    
+    gsap.fromTo(
+      searchRef.current,
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.6, delay: 0.2, ease: 'power2.out' }
+    )
+  }, [])
+
   const fetchConnections = async () => {
     setIsLoading(true)
     try {
@@ -33,30 +52,15 @@ function Connection() {
     fetchConnections()
   }, [])
 
-
-  // Search functionality
   useEffect(() => {
-    if (searchQuery.trim() === '') {
-      setFilteredConnections(connections)
-    } else {
-      const filtered = connections.filter(connection =>
-        `${connection.firstName} ${connection.lastName}`
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase())
-      )
-      setFilteredConnections(filtered)
-    }
+    setFilteredConnections(search(searchQuery.trim(), connections))
   }, [searchQuery, connections])
 
   const handleMessage = (connection) => {
-    console.log('Message:', connection)
-    // Add your message logic here
     alert(`Opening chat with ${connection.firstName}...`)
   }
 
   const handleRemove = (connection) => {
-    console.log('Remove:', connection)
-    // Add your remove logic here
     const confirmed = window.confirm(
       `Are you sure you want to remove ${connection.firstName} from your connections?`
     )
@@ -67,86 +71,92 @@ function Connection() {
   }
 
   return (
-    <div className="min-h-screen pt-20 pb-8 px-4 ">
+    <div className="min-h-screen bg-background pt-20 pb-12 px-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-              <Users className="w-6 h-6 text-white" />
+        <div ref={headerRef} className="mb-10">
+          <div className="flex items-center gap-4 mb-3">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary/50 rounded-2xl blur-lg opacity-60" />
+              <div className="relative w-14 h-14 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center shadow-lg">
+                <Users className="w-7 h-7 text-primary-foreground" />
+              </div>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 dark:text-white">
-              My Connections
-            </h1>
+            <div>
+              <h1 className="text-4xl sm:text-5xl font-bold text-foreground tracking-tight">
+                My Connections
+              </h1>
+              <p className="text-base text-muted-foreground mt-1 font-medium">
+                {isLoading ? 'Loading your network...' : `${connections.length} connection${connections.length !== 1 ? 's' : ''} in your network`}
+              </p>
+            </div>
           </div>
-          <p className="text-gray-600 dark:text-gray-400 ml-15">
-            {isLoading ? 'Loading...' : `${connections.length} connection${connections.length !== 1 ? 's' : ''}`}
-          </p>
         </div>
 
         {/* Search Bar */}
-        <div className="mb-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+        <div ref={searchRef} className="mb-8">
+          <div className="relative max-w-2xl">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <Input
               type="text"
-              placeholder="Search connections..."
+              placeholder="Search by name, skills, or description..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+              className="pl-12 h-12 text-base rounded-xl border-2 focus:border-primary shadow-sm"
             />
           </div>
         </div>
 
         {/* Connections List */}
         {isLoading ? (
-          <div className="space-y-4">
+          <div className="space-y-5">
             {[1, 2, 3].map((i) => (
               <ConnectionSkeleton key={i} />
             ))}
           </div>
         ) : filteredConnections.length > 0 ? (
-          <div className="space-y-4">
-            {filteredConnections.map((connection) => (
+          <div className="space-y-5">
+            {filteredConnections.map((connection, index) => (
               <ConnectionCard
                 key={connection._id}
                 connection={connection}
                 onMessage={handleMessage}
                 onRemove={handleRemove}
+                index={index}
               />
             ))}
           </div>
         ) : searchQuery ? (
-          // No search results
-          <div className="text-center py-16">
-            <Search className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
-            <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+          <div className="text-center py-20">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-muted flex items-center justify-center">
+              <Search className="w-10 h-10 text-muted-foreground" />
+            </div>
+            <h3 className="text-2xl font-bold text-foreground mb-2">
               No results found
             </h3>
-            <p className="text-gray-500 dark:text-gray-400">
-              Try searching with a different name
+            <p className="text-muted-foreground text-base">
+              Try searching with a different keyword
             </p>
           </div>
         ) : (
-          // No connections
-          <div className="text-center py-16">
-            <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-              <Users className="w-12 h-12 text-gray-400" />
+          <div className="text-center py-20">
+            <div className="w-28 h-28 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center">
+              <Users className="w-14 h-14 text-muted-foreground" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            <h3 className="text-2xl font-bold text-foreground mb-3">
               No connections yet
             </h3>
-            <p className="text-gray-500 dark:text-gray-400 mb-4">
-              Start connecting with people to see them here
+            <p className="text-muted-foreground text-base mb-6">
+              Start connecting with people to grow your network
             </p>
-            <Link to='/feed'>
-              <Button >
+            <Link to='/'>
+              <Button size="lg" className="font-semibold">
                 Discover People
               </Button>
             </Link>
           </div>
         )}
-      </div>
+      </div> 
     </div>
   )
 }
