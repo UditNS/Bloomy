@@ -28,13 +28,11 @@ userRouter.get('/requests', userAuth, async (req, res) => {
 
         //Better way -> building relation b/w two tables/ schema -> ref
 
-
         res.json({
             message: "Request fetched successfully",
             data : requests
         })
 
-    
     }
     catch(error){
         res.status(400).send("Something went wrong " + error.message)
@@ -42,82 +40,105 @@ userRouter.get('/requests', userAuth, async (req, res) => {
 })
 
 // getting the connections of a user
+// A common practice is to define fields to exclude, or an inverse list of fields to include.
+// Assuming USER_SECRET is a string like '-password -__v' for excluding fields
+
 userRouter.get('/connections', userAuth, async (req, res) => {
-    try{
+    try {
         const loggedInUserId = req.user._id;
 
+        // 1. Find all accepted connections involving the logged-in user
         const connections = await Connection.find({
-            $or : [
-                {toUserId : loggedInUserId, status: "accepted"},
-                {fromUserId : loggedInUserId, status: "accepted"}
-            ]   
-        }).populate("toUserId", USER_SECRET)
-        .populate("fromUserId", USER_SECRET)
-        // the connections is giving too much data -> i want to filter it
-        // i want to show only the other user details -> if loggedIn user is the sender then show the reciever details vice versa
-        
-        // if no connections    
-        const data = connections.map((connection) =>{
-            if(connection.fromUserId._id.equals(loggedInUserId)){
-                return connection.toUserId
-            }
-            return connection.fromUserId
+            status: "accepted",
+            $or: [
+                { toUserId: loggedInUserId },
+                { fromUserId: loggedInUserId }
+            ]
         })
+        .select('toUserId fromUserId') // Only fetch the IDs needed for population
+        .populate({
+            path: 'toUserId',
+            select: USER_SECRET // Use specific projection for the user data
+        })
+        .populate({
+            path: 'fromUserId',
+            select: USER_SECRET // Use specific projection for the user data
+        })
+        .lean(); // Use .lean() for faster execution when data won't be modified
 
-        if(!connections) {
-            res.json({
-                message : "No connections"
-            })
+        // 2. Process connections to extract only the partner's details
+        const data = connections.map((connection) => {
+            // Check which field holds the other user's data
+            const otherUser = connection.fromUserId._id.equals(loggedInUserId) 
+                ? connection.toUserId 
+                : connection.fromUserId;
+            
+            // Clean up the structure (optional: remove the other user's ID field)
+            delete otherUser.password; // Double check if needed, as it should be filtered by select
+
+            return otherUser;
+        });
+
+        if (data.length === 0) { // Check the final processed array length
+            return res.json({
+                message: "No connections",
+                data: []
+            });
         }
+
         res.json({
-            message: "connections fetched successfully",
+            message: "Connections fetched successfully",
             data
-        })
+        });
+    } catch (error) {
+        res.status(500).send("Something went wrong: " + error.message); // Use 500 for server errors
     }
-    catch(error){
-        res.status(400).send("Something went wrong " + error.message)
-    }
-}) 
+});
 
 // Most important api as firstly we load some profiles to show to the user
 // then when user scrolls down we fetch more profiles
 // so this api should support pagination
 // GET /user/feed?skip=20&limit=20
 userRouter.get('/feed', userAuth, async(req, res) => {
-    // I don't want that the loggedIn user to show his profile
-    // I don't want to show the loggedIn user to show the profiles in which he marked the status as 'rejected' or 'like' or 'accepted'
-    try{   
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
-        const skip = (page - 1) * limit; // formula for skip
-        limit = limit>50 ? 50 : limit
+  try {
+    const page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 10;
+    limit = limit > 50 ? 50 : limit;
+    const skip = (page - 1) * limit;
 
-        const logUser = req.user;
-        // finding all connections
-        const connectionRequest = await Connection.find({
-            $or : [
-                {fromUserId : logUser._id},
-                {toUserId : logUser._id}
-            ]
-        }).select("fromUserId toUserId")// this method only selects the fields from the data which i passed in. Space seperated input
+    const loggedInUserId = req.user._id;
 
-        // this also handled the loggedIn user profile
-        const hideUserFromFeed = new Set() // only contain unique entries
-        connectionRequest.forEach(request => {
-            hideUserFromFeed.add(request.fromUserId.toString())
-            hideUserFromFeed.add(request.toUserId.toString())
-        })  
-        // the below code is hiding the id which is present in the hideUserFromFeed 
-        const users = await User.find({
-            _id : {$nin : Array.from(hideUserFromFeed)} // converting set into array
-            // nin -> not in
-        }).select(USER_SECRET).skip(skip).limit(limit)
+    // Finding all connections
+    const connectionRequest = await Connection.find({
+      $or: [
+        { fromUserId: loggedInUserId },
+        { toUserId: loggedInUserId }
+      ]
+    }).select("fromUserId toUserId");
 
-        res.send(users);
-    }
-    catch(error) {
-        res.status(400).send("Something went wrong " + error.message)
-    }
-})
+    const hideUserFromFeed = new Set();
+    
+    // Hide logged-in user's own profile
+    hideUserFromFeed.add(loggedInUserId.toString());
+
+    connectionRequest.forEach(request => {
+      hideUserFromFeed.add(request.fromUserId.toString());
+      hideUserFromFeed.add(request.toUserId.toString());
+    });
+
+    const users = await User.find({
+      _id: { $nin: Array.from(hideUserFromFeed) }
+    })
+    .select(USER_SECRET.join(' '))
+    .skip(skip)
+    .limit(limit);
+
+    res.json({ data: users });
+  }
+  catch(error) {
+    console.error("Feed error:", error);
+    res.status(400).send({ message: "Something went wrong: " + error.message });
+  }
+});
 
 module.exports = userRouter;
