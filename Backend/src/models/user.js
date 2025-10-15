@@ -3,76 +3,74 @@ require('dotenv').config()
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken');
 
-const userSchema = new mongoose.Schema({
-    firstName : {
+const userSchema = new mongoose.Schema(
+    {
+    firstName: {
         type: String,
-        required : true,
-        minLength : 4,
-        maxLength: 25,
-        trim: true
-
+        required: [true, "First name is required"],
+        minlength: [2, "First name must be at least 2 characters"],
+        maxlength: [20, "First name cannot exceed 20 characters"],
+        trim: true,
     },
-    lastName : {
+    lastName: {
         type: String,
-        required : true,
-        minLength : 4,
-        maxLength: 25,
-        trim: true
-
+        required: [true, "Last name is required"],
+        minlength: [2, "Last name must be at least 2 characters"],
+        maxlength: [20, "Last name cannot exceed 20 characters"],
+        trim: true,
     },
-    email : {
+    email: {
         type: String,
-        required : true,
-        unique: true, // what will happen -> same email id not allowed
+        required: [true, "Email is required"],
+        unique: true,
         lowercase: true,
-        trim: true, // remove blank spaces
+        trim: true,
+        
     },
-    password : {
+    password: {
         type: String,
-        required : true,
-        minLength: 8,
+        required: [true, "Password is required"],
+        minlength: [8, "Password must be at least 8 characters"],
+        
     },
-    age : {
+    age: {
         type: Number,
-        required: true,
-        min: 18,
-        max: 130
+        required: [true, "Age is required"],
+        min: [18, "You must be at least 18 years old"],
+        max: [90, "Age cannot exceed 90 years"],
     },
     gender: {
         type: String,
         trim: true,
-        lowercase: true, // Add this to normalize the input
-        validate: {
-            validator: function(val) {
-            // Allow empty/undefined values if gender is optional
-        if (!val) return true;
-            return ["male", "female", "other"].includes(val);
+        lowercase: true,
+        enum: {
+            values: ["male", "female", "other"],
+            message: "Gender must be either 'male', 'female', or 'other'",
         },
-    message: "Gender must be either male, female, or other"
-    }
-    }, 
+    },
     photo: {
         type: String,
-        default : "https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_1280.png"
+        default:
+            "https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_1280.png",
     },
-    description : {
+    description: {
         type: String,
-        default : "Hey, there I am using Bloomy",
-        maxLength : 250
+        default: "Hey there, I’m using Bloomy!",
+        maxlength: [500, "Description cannot exceed 500 characters"],
+        trim: true,
     },
-    skill : {
-        type : [String], // array of strings
-        validate : (val) => {
-            if(val.length > 10){
-                throw new Error("Only 10 skills are allowed")
-            }
-        }
-    }
-},
-{
-    //this will add by default when the user created a document and when the user updated the doucment 
+    skill: {
+        type: [String],
+        validate: {
+            validator: (val) => val.length <= 10,
+            message: "A maximum of 10 skills are allowed",
+        },
+        },
+    },
+    {
     timestamps: true,
-})
+    }
+);
 
 // helper function of userSchema
 userSchema.methods.getJwt = async function() {// NEVER USE ARROW FUNCTION HERE IT WILL BREAK THINGS UP
