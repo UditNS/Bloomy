@@ -20,13 +20,13 @@ function NavBar() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const user = useSelector((store) => store.user);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
 
   const handleLogout = async () => {
     try {
       await axios.post(BASE_URL + "/logout", {}, { withCredentials: true });
-      dispatch(removeUser());
       navigate('/login')
+      dispatch(removeUser());
 
     } catch (error) {
       console.log(error.message);
@@ -62,9 +62,9 @@ function NavBar() {
             {/* User Menu */}
             {user && (
               <div className="block">
-                <DropdownMenu>
+                <DropdownMenu modal={false}>
                   <DropdownMenuTrigger className="focus:outline-none">
-                    <div className="flex items-center space-x-3 px-3 py-2 rounded-full hover:bg-muted transition-colors cursor-pointer group">
+                    <div className="flex items-center space-x-3 px-3 py-2 rounded-full hover:bg-muted transition-colors cursor-pointer md:bg-muted/40 group">
                       <Avatar className="h-9 w-9 ring-2 ring-transparent group-hover:ring-purple-500 transition-all">
                         <AvatarImage src={user?.photo} alt={user?.firstName} />
                         <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
@@ -72,7 +72,7 @@ function NavBar() {
                           {user?.lastName?.[0]?.toUpperCase() || ""}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="text-sm font-medium text-foreground hidden lg:block">
+                      <span className="text-sm font-medium text-foreground hidden md:block">
                         {user?.firstName}
                       </span>
                     </div>
