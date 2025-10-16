@@ -1,31 +1,42 @@
 import React from 'react'
 import { useState } from 'react'
-import { X, Plus } from 'lucide-react'
+import { X } from 'lucide-react'
 
 const FieldLabel = ({ children, htmlFor }) => <label htmlFor={htmlFor} className="text-sm font-medium">{children}</label>
 
 const Input = (props) => <input className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50" {...props} />
 
-const Button = ({ children, variant = "default", ...props }) => {
-  const baseClass = "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50 px-4 py-2"
-  const variants = {
-    default: "bg-primary text-primary-foreground hover:bg-primary/90",
-    outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
-    ghost: "hover:bg-accent hover:text-accent-foreground",
-    destructive: "bg-red-500 text-white hover:bg-red-600",
-    gradient:"border border-input bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow-xs hover:from-pink-700 hover:to-purple-700",
-  }
-  return <button className={`${baseClass} ${variants[variant]}`} {...props}>{children}</button>
-}
-
-
 function SkillsEditor({ skills, setSkills, isEditing }) {
-  const [newSkill, setNewSkill] = useState('')
+  const [inputValue, setInputValue] = useState('')
 
-  const addSkill = () => {
-    if (newSkill.trim() && !skills.includes(newSkill.trim())) {
-      setSkills([...skills, newSkill.trim()])
-      setNewSkill('')
+  const handleInputChange = (e) => {
+    const value = e.target.value
+    setInputValue(value)
+    
+    // Check if user typed a comma or pressed Enter
+    if (value.endsWith(',') || value.endsWith('\n')) {
+      const newSkill = value.slice(0, -1).trim()
+      if (newSkill && !skills.includes(newSkill)) {
+        setSkills([...skills, newSkill])
+      }
+      setInputValue('')
+    }
+  }
+
+  const handleKeyDown = (e) => {
+    // Handle Enter or comma key
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault()
+      const newSkill = inputValue.trim()
+      if (newSkill && !skills.includes(newSkill)) {
+        setSkills([...skills, newSkill])
+        setInputValue('')
+      }
+    }
+    
+    // Handle Backspace when input is empty to remove last skill
+    if (e.key === 'Backspace' && inputValue === '' && skills.length > 0) {
+      setSkills(skills.slice(0, -1))
     }
   }
 
@@ -33,56 +44,49 @@ function SkillsEditor({ skills, setSkills, isEditing }) {
     setSkills(skills.filter(skill => skill !== skillToRemove))
   }
 
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      addSkill()
-    }
-  }
-
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       <FieldLabel>Skills</FieldLabel>
       
-      {/* Skills Display */}
-      <div className="flex flex-wrap gap-2 min-h-[40px] p-3 rounded-md border border-input bg-background">
-        {skills?.length === 0 ? (
-          <span className="text-sm text-muted-foreground">No skills added yet</span>
-        ) : (
-          skills?.map((skill, index) => (
-            <span
-              key={index}
-              className="inline-flex items-center gap-1 px-3 py-1 rounded-md text-sm font-medium bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
-            >
-              {skill}
-              {isEditing && (
-                <button
-                  onClick={() => removeSkill(skill)}
-                  className="hover:bg-purple-200 dark:hover:bg-purple-800 rounded-md p-0.5"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              )}
-            </span>
-          ))
+      {/* Combined Input with Skills Display */}
+      <div className="flex flex-wrap gap-2 min-h-[40px] p-2 rounded-md border border-input bg-background focus-within:ring-2 focus-within:ring-ring">
+        {/* Display existing skills */}
+        {skills?.map((skill, index) => (
+          <span
+            key={index}
+            className="inline-flex items-center gap-1 px-3 py-1 rounded-md text-sm font-medium bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300 h-8"
+          >
+            {skill}
+            {isEditing && (
+              <button
+                onClick={() => removeSkill(skill)}
+                className="hover:bg-purple-200 dark:hover:bg-purple-800 rounded-md p-0.5 ml-1"
+                type="button"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            )}
+          </span>
+        ))}
+        
+        {/* Input field */}
+        {isEditing && (
+          <input
+            type="text"
+            placeholder={skills.length === 0 ? "Type skills and press Enter or comma" : "Add more..."}
+            value={inputValue}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            className="flex-1 min-w-[120px] h-8 outline-none bg-transparent text-sm px-1"
+          />
         )}
       </div>
-
-      {/* Add Skill Input (only in edit mode) */}
+      
+      {/* Helper text */}
       {isEditing && (
-        <div className="flex gap-2">
-          <Input
-            type="text"
-            placeholder="Add a skill (e.g., React, Node.js)"
-            value={newSkill}
-            onChange={(e) => setNewSkill(e.target.value)}
-            onKeyPress={handleKeyPress}
-          />
-          <Button onClick={addSkill} variant="outline">
-            <Plus className="w-4 h-4 mr-1" />
-            Add
-          </Button>
-        </div>
+        <p className="text-xs text-muted-foreground">
+          Press <kbd className="px-1.5 py-0.5 text-xs font-semibold border rounded">Enter</kbd> or <kbd className="px-1.5 py-0.5 text-xs font-semibold border rounded">,</kbd> to add a skill
+        </p>
       )}
     </div>
   )
