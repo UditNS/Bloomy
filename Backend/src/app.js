@@ -82,7 +82,7 @@ app.use('/delete', async(req,res) => {
 connectDB().then(()=>{
     console.log('db connect successfully')
     // once my db is connected successfully then only I will listen to the server(this is the proer way of db connect)
-    app.listen(3000, () => {
+    app.listen(3000, '0.0.0.0', () => {
         console.log("My server is listening on the port 3000") 
     })
 }).catch((err) => {
