@@ -1,144 +1,162 @@
-import React, { useState, useRef } from 'react'
-import { X, Plus, Edit2, Save, XCircle, Upload } from 'lucide-react'
-import { useDispatch, useSelector } from 'react-redux'
-import axios from 'axios'
-import { BASE_URL } from '../../utils/constant'
-import { addUser } from '../../utils/userSlice'
-import { toast } from "sonner"
-import { Toaster } from "sonner"
-import { Spinner } from "@/components/ui/spinner"
-import ProfileSkeleton from './ProfileSkeleton'
-import SkillsEditor from './SkillsEditor'
-// Mock components
-const Field = ({ children, className }) => <div className={`space-y-2 ${className}`}>{children}</div>
-const FieldLabel = ({ children, htmlFor }) => <label htmlFor={htmlFor} className="text-sm font-medium">{children}</label>
+import React, { useState, useRef } from "react";
+import { Edit2, Save, XCircle, Upload } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import axios from "axios";
+import { BASE_URL } from "../../utils/constant";
+import { addUser } from "../../utils/userSlice";
+import { toast } from "sonner";
+import { Toaster } from "sonner";
+import { Spinner } from "@/components/ui/spinner";
+import ProfileSkeleton from "./ProfileSkeleton";
+import SkillsEditor from "./SkillsEditor";
 
-const Input = (props) => <input className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50" {...props} />
+// Mock components
+const Field = ({ children, className }) => (
+  <div className={`space-y-2 ${className}`}>{children}</div>
+);
+const FieldLabel = ({ children, htmlFor }) => (
+  <label htmlFor={htmlFor} className="text-sm font-medium">
+    {children}
+  </label>
+);
+
+const Input = (props) => (
+  <input
+    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+    {...props}
+  />
+);
 
 // button component
 const Button = ({ children, variant = "default", ...props }) => {
-  const baseClass = "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50 px-4 py-2"
+  const baseClass =
+    "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50 px-4 py-2";
   const variants = {
     default: "bg-primary text-primary-foreground hover:bg-primary/90",
-    outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+    outline:
+      "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
     ghost: "hover:bg-accent hover:text-accent-foreground",
     destructive: "bg-red-500 text-white hover:bg-red-600",
-    gradient:"border border-input bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow-xs hover:from-pink-700 hover:to-purple-700",
-  }
-  return <button className={`${baseClass} ${variants[variant]}`} {...props}>{children}</button>
-}
-
-
-// Skills Component
-
+    gradient:
+      "border border-input bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow-xs hover:from-pink-700 hover:to-purple-700",
+  };
+  return (
+    <button className={`${baseClass} ${variants[variant]}`} {...props}>
+      {children}
+    </button>
+  );
+};
 
 // Main Profile Component
 function Profile() {
-  const [uploading, setUploading] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-  const fileInputRef = useRef(null)
-  const User = useSelector((store) => store.user)
+  const [uploading, setUploading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const fileInputRef = useRef(null);
+  const User = useSelector((store) => store.user);
 
-  const [isEditing, setIsEditing] = useState(false)
-  const [formData, setFormData] = useState(User)
-  const [saveData, setSaveData] = useState(false)
-  const [skill, setSkill] = useState(User?.skill)
-  const dispatch = useDispatch()
-
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState(User);
+  const [saveData, setSaveData] = useState(false);
+  const [skill, setSkill] = useState(User?.skill);
+  const dispatch = useDispatch();
 
   // Update formData and skills when User changes
+  // This is something which I may not think of
   React.useEffect(() => {
     if (User) {
-      setFormData(User)
-      setSkill(User?.skill || [])
+      setFormData(User);
+      setSkill(User?.skill || []);
       // Simulate loading time (remove this in production if not needed)
-      setTimeout(() => setIsLoading(false), 500)
+      setTimeout(() => setIsLoading(false), 500);
     }
-  }, [User])
+  }, [User]);
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.id]: e.target.value
-    })
-  }
+      [e.target.id]: e.target.value,
+    });
+  };
 
   const handleEdit = () => {
-    setIsEditing(true)
-  }
+    setIsEditing(true);
+  };
 
   const handlePhotoUpload = async (e) => {
-    const file = e.target.files[0]
-    if (!file) return
+    const file = e.target.files[0];
+    if (!file) return;
 
     // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please select an image file')
-      return
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
     }
 
     // Validate file size (max 2MB for Base64)
     if (file.size > 2 * 1024 * 1024) {
-      toast.error('Image size should be less than 2MB')
-      return
+      toast.error("Image size should be less than 2MB");
+      return;
     }
 
-    setUploading(true)
+    setUploading(true);
 
     try {
       // Convert image to Base64
-      const reader = new FileReader()
+      const reader = new FileReader();
       reader.onloadend = () => {
-        const base64String = reader.result
-        setFormData({ ...formData, photo: base64String })
-        toast.success('Photo selected. Click Save Changes to update.')
-        setUploading(false)
-      }
+        const base64String = reader.result;
+        setFormData({ ...formData, photo: base64String });
+        toast.success("Photo selected. Click Save Changes to update.");
+        setUploading(false);
+      };
       reader.onerror = () => {
-        toast.error('Failed to read image')
-        setUploading(false)
-      }
-      reader.readAsDataURL(file)
+        toast.error("Failed to read image");
+        setUploading(false);
+      };
+      reader.readAsDataURL(file);
     } catch (error) {
-      toast.error('Failed to upload photo')
-      setUploading(false)
+      toast.error("Failed to upload photo");
+      setUploading(false);
     }
-  }
+  };
 
   const handleSave = async () => {
-    
     try {
       setSaveData(true);
-      const { firstName, lastName, photo, age, gender, description } = formData
-      const res = await axios.patch(BASE_URL + '/profile/edit', {
-        firstName,
-        lastName,
-        gender,
-        age,
-        photo,
-        skill,
-        description
-      }, { withCredentials: true })
-      dispatch(addUser(res.data.user))
-
-      toast.success("Changes saved successfully")
-      setIsEditing(false)
-      setSaveData(false)
+      const { firstName, lastName, photo, age, gender, description } = formData;
+      const res = await axios.patch(
+        BASE_URL + "/profile/edit",
+        {
+          firstName,
+          lastName,
+          gender,
+          age,
+          photo,
+          skill,
+          description,
+        },
+        { withCredentials: true }
+      );
+      dispatch(addUser(res.data.user));
+      toast.success("Changes saved successfully");
+      setIsEditing(false);
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to save changes")
-      console.log(error.message)
+      toast.error(error.response?.data?.message || "Failed to save changes");
     }
-  }
+    finally{
+      setSaveData(false);
+    }
+  };
 
   const handleCancel = () => {
-    setFormData(User)
-    setSkill(User?.skill)
-    setIsEditing(false)
-  }
+    setFormData(User);
+    setSkill(User?.skill);
+    setIsEditing(false);
+  };
 
   // Show skeleton while loading
   if (isLoading || !User) {
-    return <ProfileSkeleton />
+    return <ProfileSkeleton />;
   }
 
   return (
@@ -189,14 +207,14 @@ function Profile() {
               Edit Profile
             </Button>
           ) : (
-            <div className='flex flex-col items-center space-y-2 md:flex md:flex-row md:space-x-4 md:space-y-0'>
+            <div className="flex flex-col items-center space-y-2 md:flex md:flex-row md:space-x-4 md:space-y-0">
               <Button onClick={handleCancel} variant="outline">
                 <XCircle className="w-4 h-4 mr-2" />
                 Cancel
               </Button>
               <Button onClick={handleSave} variant="gradient">
                 {saveData ? <Spinner /> : <Save className="w-4 h-4 mr-2" />}
-                Save Changes
+                <span>&nbsp;</span>Save Changes
               </Button>
             </div>
           )}
@@ -205,7 +223,6 @@ function Profile() {
         {/* Form Section */}
         <div className="p-8 pt-16 relative bg-card">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
             {/* First Name */}
             <Field>
               <FieldLabel htmlFor="firstName">First Name</FieldLabel>
@@ -288,7 +305,7 @@ function Profile() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default Profile
+export default Profile;

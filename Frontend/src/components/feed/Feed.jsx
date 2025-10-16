@@ -1,50 +1,131 @@
-import React, { useEffect, useState, useRef } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import axios from 'axios'
+import React, { useEffect, useState, useRef, useCallback } from 'react'
+import { Heart, X, Info, Loader2, UserX, Handshake } from 'lucide-react'
 import gsap from 'gsap'
+import axios from 'axios'
+import { useDispatch, useSelector } from 'react-redux'
 import { BASE_URL } from '../../utils/constant'
-import { addFeed, removeFeed } from '../../utils/feedSlice'
 import UserCard from './UserCard'
+import { addFeed, removeFeed } from '../../utils/feedSlice'
 
 function Feed() {
-  const feed = useSelector((store) => store.feed)
-  const currentUser = useSelector((store) => store.user)
-  const dispatch = useDispatch()
+  const [users, setUsers] = useState([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
   const loaderRef = useRef(null)
   const emptyStateRef = useRef(null)
+  const [isdisabled, setIsDisabled] = useState(false)
+  const currentUser = useSelector((store) => store.user)
 
-  const getFeed = async () => {
-    setIsLoading(true)
+  // 1. New function to handle API fetch with pagination (replaces the incorrect inner `fetchFeed`)
+  const fetchFeedApi = useCallback(async (pageNumber, limit = 10) => {
     try {
-      const res = await axios.get(BASE_URL + '/user/feed', { 
-        withCredentials: true 
+      // Use the pageNumber and limit in the API call
+      const res = await axios.get(BASE_URL + `/user/feed?page=${pageNumber}&limit=${limit}`, {
+        withCredentials: true
       })
-      
-      let users = res?.data?.data || res?.data || []
-      
+
+      let fetchedUsers = res?.data?.data || res?.data || []
+
+      // Filter out current user's own profile
       if (currentUser?._id) {
-        const originalLength = users.length
-        users = users.filter(user => user._id !== currentUser._id)
-        console.log(`Filtered ${originalLength - users.length} self-profile(s) from feed`)
+        const originalLength = fetchedUsers.length
+        fetchedUsers = fetchedUsers.filter(user => user._id !== currentUser._id)
+        if (originalLength !== fetchedUsers.length) {
+          console.log(`Filtered ${originalLength - fetchedUsers.length} self-profile(s) from feed`)
+        }
       }
-      
       if (currentUser?.email) {
-        users = users.filter(user => user.email !== currentUser.email)
+        fetchedUsers = fetchedUsers.filter(user => user.email !== currentUser.email)
       }
-      dispatch(addFeed(users))
+
+      return fetchedUsers
     } catch (error) {
       console.error('Feed fetch error:', error)
-      dispatch(addFeed([]))
+      return []
+    }
+  }, [currentUser]) // Depend on currentUser for filtering
+
+  // 2. Refactored initial load function to use the new `fetchFeedApi`
+  const loadInitialFeed = useCallback(async () => {
+    setIsLoading(true);
+    const limit = 10;
+    try {
+      const data = await fetchFeedApi(1, limit);
+
+      if (Array.isArray(data)) {
+        setUsers(data);
+        setHasMore(data.length === limit);
+      } else {
+        console.error("Unexpected feed data:", data);
+        setUsers([]);
+        setHasMore(false);
+      }
+
+      setPage(1);
+    } catch (error) {
+      console.error("Failed to load feed:", error);
+      setUsers([]);
+      setHasMore(false);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
+    }
+  }, [fetchFeedApi]);
+
+  // Initial load effect
+  useEffect(() => {
+    loadInitialFeed()
+  }, [loadInitialFeed])
+
+  // 3. Function to load subsequent pages
+  const loadMoreUsers = useCallback(async () => {
+    if (isLoadingMore || !hasMore) return
+
+    setIsLoadingMore(true)
+    const limit = 10;
+    try {
+      const nextPage = page + 1
+      const data = await fetchFeedApi(nextPage, limit)
+
+      if (data.length > 0) {
+        setUsers(prev => [...prev, ...data])
+        setPage(nextPage)
+        setHasMore(data.length === limit)
+      } else {
+        setHasMore(false)
+      }
+    } catch (error) {
+      console.error('Failed to load more users:', error)
+    } finally {
+      setIsLoadingMore(false)
+    }
+  }, [isLoadingMore, hasMore, page, fetchFeedApi])
+
+  // 4. Added missing function for connection request
+  const sendConnectionRequest = async (status, targetUserId) => {
+    setIsDisabled(true)
+    const endpoint = status === 'likes' ? '/connection/send/likes/' : '/connection/send/pass/'
+    try {
+      await axios.post(
+        BASE_URL + endpoint + targetUserId,
+        {},
+        {
+          withCredentials: true
+        }
+      )
+    } catch (error) {
+      // Log and potentially handle error (e.g., if match failed, etc.)
+      console.error(`Error sending ${status} request:`, error)
+      throw error // Re-throw to be caught in handleSwipe
+    }
+    finally{
+      setIsDisabled(false)
     }
   }
 
-  useEffect(() => {
-    getFeed()
-  }, [])
 
+  // Loader rotation animation
   useEffect(() => {
     if (isLoading && loaderRef.current) {
       gsap.to(loaderRef.current, {
@@ -56,52 +137,64 @@ function Feed() {
     }
   }, [isLoading])
 
+  // Empty state animation
   useEffect(() => {
-    if (!isLoading && feed?.length === 0 && emptyStateRef.current) {
+    if (!isLoading && users.length === 0 && emptyStateRef.current) {
       gsap.fromTo(
         emptyStateRef.current,
-        { 
-          scale: 0.5, 
+        {
+          scale: 0.5,
           opacity: 0,
-          y: 50 
+          y: 50
         },
-        { 
-          scale: 1, 
+        {
+          scale: 1,
           opacity: 1,
           y: 0,
-          duration: 0.6, 
-          ease: 'back.out(1.7)' 
+          duration: 0.6,
+          ease: 'back.out(1.7)'
         }
       )
     }
-  }, [isLoading, feed])
+  }, [isLoading, users])
 
-  const handleSwipe = async (direction, user) => {
+  const handleSwipe = useCallback(async (direction, user) => {
+    const status = direction === 'right' ? 'likes' : 'pass'
 
-    dispatch(removeFeed(user._id))
-    
+    // Remove user from feed immediately
+    setUsers(prev => {
+      const newUsers = prev.filter(u => u._id !== user._id)
+
+      // Load more users if running low (less than 3 remaining)
+      if (newUsers.length < 3 && hasMore && !isLoadingMore) {
+        // Debounce or ensure this doesn't trigger multiple times in quick succession
+        // For simplicity, calling it directly here.
+        loadMoreUsers()
+      }
+
+      return newUsers
+    })
+
+    // Send API request
     try {
-      const status = direction === 'right' ? 'likes' : 'pass'
-      const response = await axios.post(
-        `${BASE_URL}/connection/send/${status}/${user._id}`, 
-        {}, 
-        { withCredentials: true }
-      )
-      console.log(`✓ ${status} sent successfully:`, response.data)
+      await sendConnectionRequest(status, user._id)
+      console.log(`✓ ${status} sent successfully for ${user.firstName}`)
     } catch (error) {
-      console.error('Connection error:', error.response?.data || error.message)
+      console.error('Failed to send connection request:', error)
+      // Note: In a real app, you might want to re-add the card or show an error state
     }
-  }
 
-  if (isLoading) {
+  }, [hasMore, isLoadingMore, loadMoreUsers]) // Added loadMoreUsers to dependency array
+
+  if (isLoading && users.length === 0) { // Only show full-screen loader on initial load
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="text-center">
-          <div 
+          <div
             ref={loaderRef}
-            className="w-20 h-20 border-4 border-pink-200 border-t-pink-600 rounded-full mx-auto"
+            className="w-16 h-16 md:w-20 md:h-20 border-4 border-primary/20 border-t-primary rounded-full mx-auto"
           />
-          <p className="mt-6 text-xl text-muted-foreground font-semibold animate-pulse">
+          <p className="mt-4 md:mt-6 text-base md:text-lg text-muted-foreground font-medium">
             Finding amazing people...
           </p>
         </div>
@@ -109,19 +202,17 @@ function Feed() {
     )
   }
 
-  if (!feed || feed.length === 0) {
+  if (users.length === 0 && !isLoading) { // Show empty state only when not loading
     return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <div ref={emptyStateRef} className="text-center px-6">
-          <div className="w-32 h-32 mx-auto mb-8 rounded-full bg-gradient-to-br from-pink-200 via-purple-200 to-indigo-200 flex items-center justify-center shadow-2xl">
-            <svg className="w-16 h-16 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
+      <div className="flex items-center justify-center min-h-screen bg-background px-4">
+        <div ref={emptyStateRef} className="text-center max-w-md">
+          <div className="w-24 h-24 md:w-32 md:h-32 mx-auto mb-6 md:mb-8 rounded-full bg-gradient-to-br from-primary/20 via-primary/10 to-primary/5 flex items-center justify-center shadow-xl">
+            <UserX className="w-12 h-12 md:w-16 md:h-16 text-primary" strokeWidth={1.5} />
           </div>
-          <h3 className="text-4xl text-foreground font-bold mb-4">
-            That's Everyone!
+          <h3 className="text-2xl md:text-3xl lg:text-4xl text-foreground font-bold mb-3 md:mb-4">
+            No More Profiles
           </h3>
-          <p className="text-muted-foreground text-lg max-w-md mx-auto">
+          <p className="text-muted-foreground text-sm md:text-base lg:text-lg leading-relaxed">
             You've seen all available profiles. Check back soon for new connections!
           </p>
         </div>
@@ -130,54 +221,97 @@ function Feed() {
   }
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-background py-8 px-4">
-      <div className="relative w-full max-w-7xl flex items-center justify-center">
-        {feed.slice(0, 3).map((user, index) => (
+    <div className="relative min-h-screen bg-background pt-20 pb-32 px-4">
+      <div className="relative w-full max-w-lg mx-auto" style={{ height: 'calc(100vh - 240px)', minHeight: '500px' }}>
+        {/* Stacked Cards */}
+        {users.slice(0, 3).map((user, index) => (
           <div
             key={user._id}
-            className="absolute transition-all duration-300 ease-out"
+            className="absolute inset-0 transition-all duration-300 ease-out"
             style={{
-              zIndex: feed.length - index,
-              pointerEvents: index === 0 ? 'auto' : 'none',
-              transform: `scale(${1 - index * 0.05}) translateY(${index * 16}px)`,
-              opacity: 1 - index * 0.2,
-              filter: index > 0 ? 'blur(2px)' : 'none'
+              zIndex: 30 - index,
+              transform: `scale(${1 - index * 0.04}) translateY(${index * 8}px)`,
+              opacity: 1 - index * 0.12,
+              filter: index > 0 ? 'blur(0.5px)' : 'none',
             }}
           >
-            {index === 0 ? (
-              <UserCard user={user} onSwipe={handleSwipe} />
-            ) : (
-              <PreviewCard user={user} />
-            )}
+            <UserCard
+              user={user}
+              onSwipe={handleSwipe}
+              isTop={index === 0}
+            />
           </div>
         ))}
       </div>
-    </div>
-  )
-}
 
-// Preview card for background cards
-function PreviewCard({ user }) {
-  return (
-    <div className="w-full max-w-[550px] aspect-[5/7] rounded-3xl overflow-hidden relative shadow-2xl bg-white dark:bg-gray-800 border-4 border-white dark:border-gray-700">
-      <img
-        className="w-full h-full object-cover"
-        src={user.photo}
-        alt={user.firstName}
-        onError={(e) => {
-          e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjUwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiNmM2U3ZTk7c3RvcC1vcGFjaXR5OjEiIC8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojZTNlOWVmO3N0b3Atb3BhY2l0eToxIiAvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZykiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1zaXplPSIyNCIgZmlsbD0iIzljYTNhZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iIGZvbnQtZmFtaWx5PSJBcmlhbCI+Tm8gSW1hZ2U8L3RleHQ+PC9zdmc+'
-        }}
-      />
-      <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/95 via-black/60 to-transparent">
-        <div className="flex items-end gap-3">
-          <h2 className="text-3xl font-bold text-white drop-shadow-2xl truncate">
-            {user.firstName}
-          </h2>
-          <p className="text-2xl font-semibold text-white/95 drop-shadow-2xl">
-            {user.age}
-          </p>
+      {/* Action Buttons - Fixed at bottom, outside card stack */}
+      {users.length > 0 && (
+        <div className=" flex items-center justify-center w-full mt-10 gap-6 z-50">
+          <button
+          disabled={isdisabled}
+            onClick={() => {
+              const topCard = users[0]
+              if (topCard) {
+                const button = document.querySelector('.btn-pass')
+                if (button) {
+                  gsap.to(button, {
+                    scale: 0.85,
+                    duration: 0.08,
+                    yoyo: true,
+                    repeat: 1,
+                    ease: 'power2.inOut'
+                  })
+                }
+                // Execute swipe after the button animation starts
+                setTimeout(() => {
+                  handleSwipe('left', topCard)
+                }, 80)
+              }
+            }}
+            className="btn-pass w-16 h-16 md:w-20 md:h-20 rounded-full bg-white dark:bg-gray-800 border-4 border-red-400 flex items-center justify-center hover:bg-red-50 dark:hover:bg-red-950/30 shadow-2xl group transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+            aria-label="Pass"
+          >
+            <X className="w-8 h-8 md:w-10 md:h-10 text-red-300 group-hover:scale-110 transition-transform" />
+          </button>
+
+          <button
+          disabled={isdisabled}
+            onClick={() => {
+              const topCard = users[0]
+              if (topCard) {
+                const button = document.querySelector('.btn-like')
+                if (button) {
+                  gsap.to(button, {
+                    scale: 0.85,
+                    duration: 0.08,
+                    yoyo: true,
+                    repeat: 1,
+                    ease: 'power2.inOut'
+                  })
+                }
+                // Execute swipe after the button animation starts
+                setTimeout(() => {
+                  handleSwipe('right', topCard)
+                }, 80)
+              }
+            }}
+            className="btn-like w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-pink-500 via-fuchsia-600 to-purple-500 shadow-2xl flex items-center justify-center hover:from-pink-600 hover:via-fuchsia-700 hover:to-purple-600 group transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+            aria-label="Like"
+          >
+            <Handshake className="w-8 h-8 md:w-10 md:h-10 text-white f group-hover:scale-110 transition-transform" />
+          </button>
         </div>
-      </div>
+      )}
+
+      {/* Loading More Indicator */}
+      {isLoadingMore && (
+        <div className="fixed bottom-32 left-1/2 -translate-x-1/2 z-40">
+          <div className="bg-card/90 backdrop-blur-sm border border-border rounded-full px-4 py-2 shadow-lg flex items-center gap-2">
+            <Loader2 className="w-4 h-4 text-primary animate-spin" />
+            <span className="text-sm text-foreground font-medium">Loading more...</span>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
