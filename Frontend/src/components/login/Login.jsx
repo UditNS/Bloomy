@@ -19,7 +19,7 @@ import { BASE_URL } from '../../utils/constant'
 import { Spinner } from "@/components/ui/spinner";
 import { Link } from 'react-router'
 import { useForm } from "react-hook-form"
-import { Asterisk } from 'lucide-react'
+
 function Login() {
     const [errorMsg, setErrorMsg] = useState("")
     const dispatch = useDispatch()
@@ -102,12 +102,7 @@ function Login() {
                         <FieldGroup>
                             <Field>
                                 <FieldLabel htmlFor="email" className="flex items-center gap-1">
-                                Email
-                                <Asterisk 
-                                    size={12} 
-                                    className="text-red-500 mt-0.5" 
-                                    aria-label="required" 
-                                />
+                                Email<span className="text-red-500 -ml-1">*</span>
                                 </FieldLabel>
                                 <Input 
                                     id="email" 
@@ -133,11 +128,7 @@ function Login() {
                             </Field>
 
                             <Field>
-                                <FieldLabel htmlFor="password">Password<Asterisk 
-                                    size={12} 
-                                    className="text-red-500 mt-0.5" 
-                                    aria-label="required" 
-                                /></FieldLabel>
+                                <FieldLabel htmlFor="password">Password<span className="text-red-500 -ml-1.5">*</span></FieldLabel>
                                 <Input 
                                     id="password" 
                                     type="password" 

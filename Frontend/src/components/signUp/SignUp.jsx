@@ -2,11 +2,10 @@ import React, { useState, useRef } from "react";
 import axios from "axios";
 import Sign1 from "../../assets/sign1.png";
 import Sign2 from "../../assets/sign2.png";
-
 import Sign4 from "../../assets/sign4.png";
 import Avatar1 from '../../assets/Avatar1.png'
 import Avatar2 from '../../assets/Avatar2.png'
-
+import { Toaster, toast } from "sonner";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { addUser } from "../../utils/userSlice";
@@ -19,36 +18,89 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router";
 import { BASE_URL } from "../../utils/constant";
 import { Spinner } from "@/components/ui/spinner";
+import { useForm } from "react-hook-form";
 
 function SignUp() {
-  // Step 1 form data
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
 
-  // Step 2 form data
-  const [age, setAge] = useState("");
-  const [gender, setGender] = useState("");
   const [description, setDescription] = useState("");
   const [skills, setSkills] = useState([]);
 
-  const [error, setError] = useState("");
+  const { register, handleSubmit, trigger, formState: { errors } } = useForm({ mode: "onBlur" });
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [proceed, setProceed] = useState(false);
   const container = useRef();
 
+  const step1Fields = [
+  {
+    name: "firstName",
+    label: "First Name",
+    type: "text",
+    placeholder: "Enter your first name",
+    rules: {
+      required: "First name is required",
+      minLength: { value: 2, message: "Minimum 2 characters" },
+    },
+  },
+  {
+    name: "lastName",
+    label: "Last Name",
+    type: "text",
+    placeholder: "Enter your last name",
+    rules: {
+      required: "Last name is required",
+      minLength: { value: 2, message: "Minimum 2 characters" },
+    },
+  },
+  {
+    name: "email",
+    label: "Email",
+    type: "email",
+    placeholder: "Enter your email address",
+    rules: {
+      required: "Email is required",
+      pattern: {
+        value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+        message: "Enter a valid email address",
+      },
+    },
+  },
+  {
+    name: "password",
+    label: "Password",
+    type: "password",
+    placeholder: "••••••••",
+    rules: {
+      required: "Password is required",
+      minLength: { value: 8, message: "Minimum 8 characters" },
+      pattern: {
+        value: /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/,
+        message: "Must contain 1 uppercase, 1 number, and 1 special char",
+      },
+    },
+  },
+];
+
+
+  // on blue checks every field when we leave the input field
+  const handleFieldBlur = async (fieldName) => {
+    const valid = await trigger(fieldName);
+    if (!valid) {
+      const errorMessage = errors[fieldName]?.message;
+      if (errorMessage) toast.error(errorMessage);
+    }
+  };
+
   // Handle proceed to step 2
-  const handleProceed = () => {
+  const handleProceed = async () => {
     // Validate step 1 fields
-    if (!firstName || !lastName || !email || !password) {
-      setError("Please fill in all fields");
+    const valid = await trigger(["firstName", "lastName", "email", "password"]);
+    if (!valid) {
+      toast.error("Please fix the errors before proceeding");
       return;
     }
 
-    setError("");
 
     const tl = gsap.timeline({
       defaults: { ease: "power2.inOut", duration: 0.8 },
@@ -83,37 +135,36 @@ function SignUp() {
   };
 
   // Handle final signup
-  const handleSignUp = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const res = await axios.post(
-        BASE_URL + "/signup",
-        {
-          firstName,
-          lastName,
-          email,
-          password,
-          age: age ? parseInt(age) : undefined,
-          gender,
-          description,
-          skill: skills,
-        },
-        { withCredentials: true }
-      );
-
-      setLoading(false);
-      dispatch(addUser(res.data));
-      setError("");
+ const handleSignUp = async (data) => {
+  setLoading(true);
+  try {
+    const res = await axios.post(
+      BASE_URL + "/signup",
+      {
+        "firstName": data.firstName,
+        "lastName": data.lastName,
+        "email": data.email,
+        "password": data.password,
+        "age": data.age,
+        "gender": data.gender,
+        description,
+        skill: skills,
+      },
+      { withCredentials: true }
+    );
+    
+    toast.success("Woohoo! 🎊 Your account is ready. Let’s get started!")
+    
+    // Add a small delay to let the toast be visible before navigating
+    setTimeout(() => {
       navigate("/login");
-    } catch (error) {
-      setLoading(false);
-      setError(error?.response?.data?.message || "Something went wrong");
-      console.log(error);
-    }
-  };
-
+    }, 1500); // 1.5 second delay
+    
+  } catch (error) {
+    toast.error(error?.response?.data?.message || "Something went wrong");
+    setLoading(false); // Only reset loading on error
+  }
+};
   useGSAP(
     () => {
       // Initial animation on page load
@@ -154,6 +205,7 @@ function SignUp() {
 
   return (
     <div className="flex items-center justify-center min-h-screen p-4">
+      <Toaster position="bottom-right" richColors />
       {/* Card with glow effect */}
       <div className="relative group">
         {/* Animated glow border */}
@@ -184,48 +236,30 @@ function SignUp() {
             {/* Form Fields */}
             <FieldSet className="w-full">
               <FieldGroup>
-                <Field>
-                  <FieldLabel htmlFor="firstName">First Name</FieldLabel>
-                  <Input
-                    id="firstName"
-                    type="text"
-                    value={firstName}
-                    placeholder="Enter your first name"
-                    onChange={(e) => setFirstName(e.target.value)}
-                  />
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor="lastName">Last Name</FieldLabel>
-                  <Input
-                    id="lastName"
-                    type="text"
-                    value={lastName}
-                    placeholder="Enter your last name"
-                    onChange={(e) => setLastName(e.target.value)}
-                  />
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor="email">Email</FieldLabel>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    placeholder="Enter your email address"
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor="password">Password</FieldLabel>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    placeholder="••••••••"
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                </Field>
+                {step1Fields.map((field) => (
+                  <Field key={field.name}>
+                    <FieldLabel htmlFor={field.name}>
+                      {field.label}
+                      <span className="text-red-500 -ml-1.5">*</span>
+                    </FieldLabel>
+
+                    <Input
+                      id={field.name}
+                      type={field.type}
+                      placeholder={field.placeholder}
+                      {...register(field.name, field.rules)}
+                      onBlur={() => handleFieldBlur(field.name)}
+                      className={`border rounded-md transition-all duration-300 ${
+                        errors[field.name]
+                          ? "border-red-500 focus-visible:ring-2 focus-visible:ring-red-400 shadow-[0_0_8px_rgba(239,68,68,0.3)]"
+                          : "border-input focus-visible:ring-2 focus-visible:ring-pink-400 hover:border-pink-400"
+                      } bg-background text-foreground placeholder:text-muted-foreground`}
+                    />
+                  </Field>
+                ))}
               </FieldGroup>
             </FieldSet>
+
 
             {/* Error Alert */}
 
@@ -314,28 +348,45 @@ function SignUp() {
                 Help others get to know you better
               </p>
             </div>
-
+            <form onSubmit={handleSubmit(handleSignUp)}>
             <FieldSet className="w-full ">
               <FieldGroup>
                 <Field className="-mb-2">
-                  <FieldLabel htmlFor="age">Age</FieldLabel>
+                  <FieldLabel htmlFor="age">
+                    Age<span className="text-red-500 -ml-1.5">*</span>
+                  </FieldLabel>
+
                   <Input
                     id="age"
                     type="number"
                     placeholder="Enter your age"
-                    value={age}
-                    onChange={(e) => setAge(e.target.value)}
-                  />
+                    {...register("age", {
+                      required: "Age is required",
+                      min: {
+                        value: 18,
+                        message: "You must be at least 18 years old",
+                      },
+                    })}
+                    onBlur={() => handleFieldBlur("age")}
+                    className={`border transition-all duration-300 [-moz-appearance:_textfield] [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none ${
+                      errors.age
+                        ? "border-red-500 focus-visible:ring-2 focus-visible:ring-red-500"
+                        : "border-input focus-visible:ring-2 focus-visible:ring-pink-500 hover:border-pink-400"
+                    }`}
+                  />  
                 </Field>
-
                 {/* Gender */}
                 <Field className="-mb-2">
-                  <FieldLabel htmlFor="gender">Gender</FieldLabel>
+                  <FieldLabel htmlFor="gender">Gender<span className="text-red-500 -ml-1.5">*</span></FieldLabel>
                   <select
                     id="gender"
-                    value={gender}
-                    onChange={(e) => setGender(e.target.value)}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                    {...register("gender", { required: "Gender is required" })}
+                    onBlur={() => handleFieldBlur("gender")}
+                    className={`border rounded-md w-full p-2 transition-all duration-300 ${
+                      errors.gender
+                        ? "border-red-500 focus-visible:ring-2 focus-visible:ring-red-400"
+                        : "border-input focus-visible:ring-2 focus-visible:ring-pink-400 hover:border-pink-400"
+                    } bg-background text-foreground flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50`}
                   >
                     <option value="">Select gender</option>
                     <option value="male">Male</option>
@@ -353,7 +404,7 @@ function SignUp() {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     rows={3}
-                    className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+                    className="flex w-full rounded-md border  px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none  disabled:cursor-not-allowed disabled:opacity-50 resize-none border-input focus-visible:ring-2 focus-visible:ring-pink-500 hover:border-pink-400"
                   />
                 </Field>
 
@@ -369,12 +420,14 @@ function SignUp() {
             </FieldSet>
             {/* Sign Up Button */}
             <Button
-              onClick={handleSignUp}
+              type="submit"
               className="w-full mt-6 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
               disabled={loading}
             >
               {loading ? <Spinner /> : "Complete Sign Up"}
             </Button>
+            </form>
+            
             <div className="text-center mt-4 font-light text-foreground/60">
               Existing User?{" "}
               <Link className="hover:underline" to="/login">
