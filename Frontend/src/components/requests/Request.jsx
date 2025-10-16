@@ -7,19 +7,21 @@ import { BASE_URL } from '../../utils/constant'
 import axios from 'axios'
 import RequestCard from './RequestCard'
 import gsap from 'gsap'
+import { toast, Toaster } from 'sonner'
 
 // Main Requests Component
 function Request() {
   const [requests, setRequests] = useState([])
   const [isLoading, setIsLoading] = useState(true)
-  const [isProcessing, setIsProcessing] = useState(false)
+  const [isProcessing, setIsProcessing] = useState(false) // Most powerful as this is maintained at parent level to prevent multiple simultaneous actions
+  const navigate = useNavigate();
   
   const headerRef = useRef(null)
 
   useEffect(() => {
     // Animate header on mount
     gsap.fromTo(
-      headerRef.current,
+      headerRef.current, // refers to current element
       { opacity: 0, y: -20 },
       { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }
     )
@@ -35,7 +37,6 @@ function Request() {
       // Replace with your actual API call
       const res = await axios.get(BASE_URL + '/user/requests', { withCredentials: true })
       setRequests(res.data.data)
-      console.log(res.data.data)
       setIsLoading(false)
       
     } catch (error) {
@@ -48,11 +49,14 @@ function Request() {
   const handleAccept = async (request) => {
     setIsProcessing(true)
     try {
-      // Simulated API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      console.log('Accepted request from:', request.fromUserId.firstName)
-      setRequests(prev => prev.filter(req => req._id !== request._id))
-      alert(`You are now connected with ${request.fromUserId.firstName}!`)
+      // Replace with your actual API call
+      await axios.post(BASE_URL + `/connection/recieve/accepted/${request._id}`, {}, { withCredentials: true })
+
+      // Remove from list
+    setRequests(prev => prev.filter(req => req._id !== request._id))
+
+      // Show success message (you can use toast here)
+      toast.success(`You are now connected with ${request.fromUserId.firstName}!`)
     } catch (error) {
       console.error('Error accepting request:', error)
       alert('Failed to accept request')
@@ -60,15 +64,18 @@ function Request() {
       setIsProcessing(false)
     }
   }
-
+  
   const handleReject = async (request) => {
     setIsProcessing(true)
     try {
-      // Simulated API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      console.log('Rejected request from:', request.fromUserId.firstName)
+      // Replace with your actual API call
+      await axios.post(BASE_URL + `/connection/recieve/rejected/${request._id}`, {}, { withCredentials: true })
+
+      // Remove from list
       setRequests(prev => prev.filter(req => req._id !== request._id))
-      alert(`Request from ${request.fromUserId.firstName} rejected`)
+      
+      // Show success message
+      toast.info(`Request from ${request.fromUserId.firstName} rejected`)
     } catch (error) {
       console.error('Error rejecting request:', error)
       alert('Failed to reject request')
@@ -80,6 +87,7 @@ function Request() {
   return (
     <div className="min-h-screen bg-background pt-20 pb-12 px-4">
       <div className="max-w-6xl mx-auto">
+        <Toaster richColors position="bottom-right" />
         {/* Header */}
         <div ref={headerRef} className="mb-10">
           <div className="flex items-center gap-4 mb-3">
@@ -132,7 +140,7 @@ function Request() {
             <p className="text-muted-foreground text-base mb-6">
               You're all caught up! Check back later for new connection requests.
             </p>
-            <Button size="lg" className="font-semibold">
+            <Button size="lg" className="font-semibold" onClick={() => navigate('/')}>
               Discover People
             </Button>
           </div>

@@ -1,6 +1,6 @@
 
-import React, { useEffect, useState, useRef } from 'react'
-import { Check, X, Clock, UserPlus, Sparkles } from 'lucide-react'
+import { useEffect, useState, useRef } from 'react'
+import { Check, X, Clock, UserPlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 import gsap from 'gsap'
@@ -79,7 +79,7 @@ function RequestCard({ request, onAccept, onReject, isProcessing, index }) {
           <div className="space-y-1">
             <h3 className="text-xl sm:text-2xl font-bold text-foreground truncate flex items-center justify-center sm:justify-start gap-2">
               {request.fromUserId.firstName} {request.fromUserId.lastName}
-              <Sparkles className="w-4 h-4 text-primary/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              
             </h3>
             {request.fromUserId.age && (
               <p className="text-sm font-medium text-muted-foreground">
@@ -97,7 +97,7 @@ function RequestCard({ request, onAccept, onReject, isProcessing, index }) {
           {/* Skills */}
           {request.fromUserId.skill && request.fromUserId.skill.length > 0 && (
             <div className="flex flex-wrap gap-2 justify-center sm:justify-start pt-1">
-              {request.fromUserId.skill.slice(0, 3).map((skill, idx) => (
+              {request.fromUserId.skill.slice(0, 6).map((skill, idx) => (
                 <span
                   key={idx}
                   className="px-3 py-1.5 text-xs font-semibold bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors duration-200 border border-primary/20"
@@ -105,9 +105,9 @@ function RequestCard({ request, onAccept, onReject, isProcessing, index }) {
                   {skill}
                 </span>
               ))}
-              {request.fromUserId.skill.length > 3 && (
+              {request.fromUserId.skill.length > 6 && (
                 <span className="px-3 py-1.5 text-xs font-semibold bg-muted text-muted-foreground rounded-lg border border-border">
-                  +{request.fromUserId.skill.length - 3} more
+                  +{request.fromUserId.skill.length - 6} more
                 </span>
               )}
             </div>
