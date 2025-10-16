@@ -17,36 +17,42 @@ import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router'
 import { BASE_URL } from '../../utils/constant'
 import { Spinner } from "@/components/ui/spinner";
-
+import { Link } from 'react-router'
+import { useForm } from "react-hook-form"
 
 function Login() {
-    const [email, setEmail] = useState("udit007@gmail.com");
-    const [password, setPassword] = useState("Udit@1234")
     const [errorMsg, setErrorMsg] = useState("")
     const dispatch = useDispatch()
     const navigate = useNavigate()
     const [loading, setLoading] = useState(false)
-    
+    const {register, handleSubmit, trigger, formState: { errors, touchedFields },
+} = useForm({mode:"onBlur"})
 
+    const handleFieldBlur = async (fieldName) => {
+        const valid = await trigger(fieldName);
+        if (!valid) {
+        const errorMessage = errors[fieldName]?.message;
+        if (errorMessage) toast.error(errorMessage);
+        }
+    };
     //this will handle the api call for login -> using axios(fetch can also be used)
-    const handleLogin = async (e) => {
-        e.preventDefault()
+    const handleLogin = async (data) => {
+        // e.preventDefault()
         setLoading(true);
         try{
             const res = await axios.post(BASE_URL + "/login", {
-                email,
-                password
+                email: data.email,
+                password: data.password
             }, {withCredentials: true}) // required this to set the cookies
             
             dispatch(addUser(res.data))
-            
             setErrorMsg("")
             navigate('/')
         }
         catch(error){
-            
-            setErrorMsg(error?.response?.data?.message || "Something went wrong")
-            toast.error(errorMsg)
+            const msg = (error?.response?.data?.message || "Something went wrong")
+            setErrorMsg(msg)
+            toast.error(msg)
         }
         finally{
             setLoading(false)
@@ -62,8 +68,7 @@ function Login() {
     })
     return (
     <div className="flex items-center justify-center min-h-screen p-4">
-        {<Toaster className='block sm:hidden' position="top-center" richColors/>}
-        {<Toaster className='hidden sm:block' position="bottom-right" richColors/>}
+        <Toaster position="bottom-right" richColors />
     {/* Card with glow effect */}
     <div className="relative group img">
         
@@ -93,46 +98,72 @@ function Login() {
                 </div>
                 
                 {/* Form Fields */}
-                
-                <FieldSet className="w-full">
-                    <FieldGroup>
-                        <Field>
-                            <FieldLabel htmlFor="email">Email</FieldLabel>
-                            <Input 
-                                id="email" 
-                                type="email" 
-                                value={email} 
-                                placeholder="Enter your email address" 
-                                onChange={(e) => setEmail(e.target.value)}
-                                
-                            />
-                        </Field>
+                <form onSubmit={handleSubmit(handleLogin)}>
+                    <FieldSet className="w-full">
+                        <FieldGroup>
+                            <Field>
+                                <FieldLabel htmlFor="email">Email</FieldLabel>
+                                <Input 
+                                    id="email" 
+                                    type="email" 
+                                    placeholder="Enter your email address" 
+                                    {...register("email", {
+                                        required: "Email is required",
+                                        pattern: {
+                                        value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                                        message: "Enter a valid email address",
+                                        },
+                                    })}
+                                    onBlur={() => handleFieldBlur("email")}
+                                    className= {`border transition-colors
+                                            ${
+                                            errors.email ? "border-red-500 focus-visible:ring-red-500" : "border-input"}`
+                                    }
+                                />
+                            </Field>
 
-                        <Field>
-                            <FieldLabel htmlFor="password">Password</FieldLabel>
-                            <Input 
-                                id="password" 
-                                type="password" 
-                                value={password} 
-                                placeholder="••••••••" 
-                                onChange={(e) => setPassword(e.target.value)}
-                            />
-                        </Field>
-                    </FieldGroup>
-                </FieldSet>
-                {/* Alert : error */}
-                
-                {/* Login Button */}
-                <Button 
-                    // disabled={!!Error || !!passwordError}
-                    onClick={handleLogin} 
-                    className="w-full mt-6 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 duration-200"
-                >
-                    {loading ? (<Spinner></Spinner>) : ("")}Login
-                </Button>
-
+                            <Field>
+                                <FieldLabel htmlFor="password">Password</FieldLabel>
+                                <Input 
+                                    id="password" 
+                                    type="password" 
+                                    placeholder="••••••••" 
+                                    {...register("password", {
+                                        required: "Password is required",
+                                        minLength: {
+                                            value: 8,
+                                            message: "Password must be at least 8 characters",
+                                        },
+                                        pattern: {
+                                            value: /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/,
+                                            message: "Password must contain 1 uppercase, 1 number, and 1 special character",
+                                        }
+                                    })}
+                                    onBlur={() => handleFieldBlur("password")}
+                                    className= {`border transition-colors
+                                            ${
+                                            errors.password ? "border-red-500 focus-visible:ring-red-500" : "border-input"}`
+                                    }
+                                />
+                            </Field>
+                        </FieldGroup>
+                    </FieldSet>
+                    {/* Alert : error */}
+                    
+                    {/* Login Button */}
+                    <Button 
+                        type="submit"
+                        className="w-full mt-6 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 duration-200"
+                    >
+                        {loading ? (<Spinner></Spinner>) : ("Login")}
+                    </Button>
+                </form>
+                <div className='text-center mt-4 font-light text-foreground/60'>
+                    New to Bloomy? <Link className='hover:underline' to='/signup'>Create an account</Link>
+                </div>
             </div>
         </div>
+        
     </div>
 </div>
   )
