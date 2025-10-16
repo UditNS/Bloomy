@@ -1,6 +1,69 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Prevent layout shift from dropdown menus */
+html {
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
+}
+
+/* Prevent Radix UI/shadcn dropdown from shifting layout */
+body[data-scroll-locked] {
+  padding-right: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* Keep navbar fixed and prevent shift */
+nav {
+  width: 100%;
+}
+
+/* Ensure the navbar doesn't shift when dropdown opens */
+.fixed {
+  width: calc(100% - var(--removed-body-scroll-bar-size, 0px));
+}
+
+/* Light mode scrollbar */
+:root {
+  --scrollbar-track: #f1f1f1;
+  --scrollbar-thumb: #c1c1c1;
+  --scrollbar-thumb-hover: #a8a8a8;
+}
+
+/* Dark mode scrollbar */
+.dark {
+  --scrollbar-track: #1a1a1a;
+  --scrollbar-thumb: #444;
+  --scrollbar-thumb-hover: #666;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 10px;
+  border: 2px solid var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+
 @custom-variant dark (&:is(.dark *));
 
 @keyframes shimmer {
@@ -131,3 +194,9 @@
     @apply bg-background text-foreground;
   }
 }
+
+
+
+
+
+

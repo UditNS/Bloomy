@@ -19,7 +19,7 @@ import { BASE_URL } from '../../utils/constant'
 import { Spinner } from "@/components/ui/spinner";
 import { Link } from 'react-router'
 import { useForm } from "react-hook-form"
-
+import { Asterisk } from 'lucide-react'
 function Login() {
     const [errorMsg, setErrorMsg] = useState("")
     const dispatch = useDispatch()
@@ -37,7 +37,6 @@ function Login() {
     };
     //this will handle the api call for login -> using axios(fetch can also be used)
     const handleLogin = async (data) => {
-        // e.preventDefault()
         setLoading(true);
         try{
             const res = await axios.post(BASE_URL + "/login", {
@@ -102,7 +101,14 @@ function Login() {
                     <FieldSet className="w-full">
                         <FieldGroup>
                             <Field>
-                                <FieldLabel htmlFor="email">Email</FieldLabel>
+                                <FieldLabel htmlFor="email" className="flex items-center gap-1">
+                                Email
+                                <Asterisk 
+                                    size={12} 
+                                    className="text-red-500 mt-0.5" 
+                                    aria-label="required" 
+                                />
+                                </FieldLabel>
                                 <Input 
                                     id="email" 
                                     type="email" 
@@ -115,15 +121,23 @@ function Login() {
                                         },
                                     })}
                                     onBlur={() => handleFieldBlur("email")}
-                                    className= {`border transition-colors
-                                            ${
-                                            errors.email ? "border-red-500 focus-visible:ring-red-500" : "border-input"}`
-                                    }
+                                    className={`border rounded-md transition-all duration-300 
+                                        ${
+                                            errors.email
+                                            ? "border-red-500 focus-visible:ring-2 focus-visible:ring-red-400 focus:border-red-500 shadow-[0_0_8px_rgba(239,68,68,0.3)]"
+                                            : "border-input focus-visible:ring-2 focus-visible:ring-pink-400 focus:border-pink-500 hover:border-pink-400"
+                                        } 
+                                        bg-background text-foreground placeholder:text-muted-foreground
+                                    `}
                                 />
                             </Field>
 
                             <Field>
-                                <FieldLabel htmlFor="password">Password</FieldLabel>
+                                <FieldLabel htmlFor="password">Password<Asterisk 
+                                    size={12} 
+                                    className="text-red-500 mt-0.5" 
+                                    aria-label="required" 
+                                /></FieldLabel>
                                 <Input 
                                     id="password" 
                                     type="password" 
@@ -140,10 +154,14 @@ function Login() {
                                         }
                                     })}
                                     onBlur={() => handleFieldBlur("password")}
-                                    className= {`border transition-colors
-                                            ${
-                                            errors.password ? "border-red-500 focus-visible:ring-red-500" : "border-input"}`
-                                    }
+                                    className={`border rounded-md transition-all duration-300 
+                                        ${
+                                            errors.password
+                                            ? "border-red-500 focus-visible:ring-2 focus-visible:ring-red-400 focus:border-red-500 shadow-[0_0_8px_rgba(239,68,68,0.3)]"
+                                            : "border-input focus-visible:ring-2 focus-visible:ring-pink-400 focus:border-pink-500 hover:border-pink-400"
+                                        } 
+                                        bg-background text-foreground placeholder:text-muted-foreground
+                                    `}
                                 />
                             </Field>
                         </FieldGroup>
