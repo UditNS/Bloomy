@@ -8,18 +8,66 @@ import Feed from "./components/feed/Feed";
 import Profile from "./components/profile/Profile";
 import Connection from "./components/connections/Connection";
 import Request from "./components/requests/Request";
+import Signup from "./components/signUp/SignUp";
+import ProtectedRoute from './components/ProtectedRoute';
+import { AuthRoute } from './components/ProtectedRoute';
+
 function App() {
   const router = createBrowserRouter(
     createRoutesFromElements(
-        <Route path = '/' element = {<Layout />}>
-          <Route path = '/' element = {<Feed />}></Route>
-          <Route path = '/login' element = {<Login />}></Route>
-          <Route path = '/profile' element = {<Profile />}></Route>
-          <Route path = '/connections' element={<Connection />}></Route>
-          <Route path = '/requests' element={<Request />}></Route>
+        <Route path="/" element={<Layout />}>
+          {/* Public routes - redirect to home if logged in */}
+          <Route 
+            path="login" 
+            element={
+              <AuthRoute>
+                <Login />
+              </AuthRoute>
+            } 
+          />
+          <Route 
+            path="signup" 
+            element={
+              <AuthRoute>
+                <Signup />
+              </AuthRoute>
+            } 
+          />
 
-        {/* <Route loader={gitInfoLoader} path = '/github' element = {<Github />}></Route> */}
-      </Route>
+          {/* Protected routes - require authentication */}
+          <Route 
+            path="/" 
+            element={
+              <ProtectedRoute>
+                <Feed />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="profile" 
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="connections" 
+            element={
+              <ProtectedRoute>
+                <Connection />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="requests" 
+            element={
+              <ProtectedRoute>
+                <Request />
+              </ProtectedRoute>
+            } 
+          />
+        </Route>
     )
   )
   return (
