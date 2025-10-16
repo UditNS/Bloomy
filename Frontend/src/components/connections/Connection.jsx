@@ -65,7 +65,14 @@ function Connection() {
       `Are you sure you want to remove ${connection.firstName} from your connections?`
     )
     if (confirmed) {
-      setConnections(prev => prev.filter(c => c._id !== connection._id))
+      try{
+        const res = axios.delete(BASE_URL + '/connection/remove/' + connection._id, {withCredentials: true})
+
+        setConnections(prev => prev.filter(c => c._id !== connection._id))
+      }catch(error){
+        console.log("something went wrong" + error)
+      }
+
       alert(`${connection.firstName} removed from connections`)
     }
   }
