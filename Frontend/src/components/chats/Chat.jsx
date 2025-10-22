@@ -2,9 +2,12 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useParams } from 'react-router';
 import { Send, Smile, Paperclip, MoreVertical, ArrowLeft } from 'lucide-react';
 import { gsap } from 'gsap';
-
+import { createSocketConnection } from '../../utils/socket';
+import { useSelector } from 'react-redux';
 const Chat = () => {
-    const { userId } = useParams();
+    const { targetUserId } = useParams();
+    const user = useSelector((store) => store.user)
+    const userId = user?._id
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState([
         {
@@ -30,7 +33,16 @@ const Chat = () => {
     const messagesEndRef = useRef(null);
     const chatContainerRef = useRef(null);
     const inputRef = useRef(null);
+    // page loads I wants to connects to server
+    useEffect (() => {
+        const socket = createSocketConnection();
+        socket.emit('joinChat', {userId, targetUserId})// the name "joinChat" should be same as backend event
 
+        // we can write return in useEffect -> this will be called when the component unmounts
+        return () => {
+            socket.disconnect()
+        }
+    }, [])
     useEffect(() => {
         // Animate chat container on mount
         gsap.fromTo(
