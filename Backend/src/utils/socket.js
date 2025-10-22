@@ -16,7 +16,10 @@ const initializeSocket = (server) => {
             socket.join(roomId)
         })
 
-        socket.on('sendMessage', () => {
+        socket.on('sendMessage', (newMessage) => {
+            const roomId = [newMessage.userId, newMessage.targetId].sort().join("_");
+            
+            io.to(roomId).emit("recieveMessage", {senderUserId: newMessage.userId, targetId: newMessage.targetId, text:newMessage.text, time:newMessage.time});
 
         })
 

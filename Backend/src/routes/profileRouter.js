@@ -2,8 +2,17 @@ const express = require("express")
 const {userAuth} = require("../middlewares/auth")
 const bcrypt = require("bcrypt")
 const User = require('../models/user')
-
 const profileRouter = express.Router()
+
+profileRouter.get("/userId/:id", userAuth, async (req, res) => {
+    try {
+        const targetId = req.params.id
+        const response = await User.findById(targetId).select("firstName lastName photo");
+        res.send(response)
+    } catch (error) {
+        res.status(401).send("error occured : " + error.message)
+    }
+})
 
 profileRouter.get('/view',userAuth, async (req, res) => {
     try{
