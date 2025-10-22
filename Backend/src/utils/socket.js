@@ -11,8 +11,9 @@ const initializeSocket = (server) => {
     // to recieve connection
     io.on("connection", (socket) => {
         //handle events
-        socket.on('joinChat', () => {
-
+        socket.on('joinChat', ({userId, targetUserId}) => {
+            const roomId = [userId, targetUserId].sort().join("_");// the roomId must be same between the two user who are chatting thats why we do sort 
+            socket.join(roomId)
         })
 
         socket.on('sendMessage', () => {
@@ -20,7 +21,7 @@ const initializeSocket = (server) => {
         })
 
         socket.on('disconnect', () => {
-            
+
         })
     })
 }
