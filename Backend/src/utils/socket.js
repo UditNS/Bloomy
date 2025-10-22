@@ -11,6 +11,17 @@ const initializeSocket = (server) => {
     // to recieve connection
     io.on("connection", (socket) => {
         //handle events
+        socket.on('joinChat', () => {
+
+        })
+
+        socket.on('sendMessage', () => {
+
+        })
+
+        socket.on('disconnect', () => {
+            
+        })
     })
 }
 
