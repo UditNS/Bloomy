@@ -1,10 +1,15 @@
 const express = require('express')
 const connectDB = require('./config/database')
 const cookieParser = require('cookie-parser')
+const http = require('http')
+const initializeSocket = require('./utils/socket')
 // userModel
 const User = require('./models/user')
 const cors = require('cors')
 const app = express();
+
+const server = http.createServer(app)
+initializeSocket(server)
 
 // cors will be added be before everything
 app.use(cors({
@@ -16,7 +21,6 @@ app.use(cors({
 app.use(express.json({ limit: '5mb' }))
 app.use(express.urlencoded({ limit: '5mb', extended: true }))
 app.use(cookieParser())
-
 
 // routes
 const authRoute = require("./routes/authRouter")
@@ -82,10 +86,10 @@ app.use('/delete', async(req,res) => {
 connectDB().then(()=>{
     console.log('db connect successfully')
     // once my db is connected successfully then only I will listen to the server(this is the proer way of db connect)
-    app.listen(3000, '0.0.0.0', () => {
+    server.listen(3000, '0.0.0.0', () => {
         console.log("My server is listening on the port 3000") 
     })
 }).catch((err) => {
     console.log('db cannot be connected!!!')
     console.log(err); 
-})
+}) 
