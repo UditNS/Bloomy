@@ -216,7 +216,7 @@ function SignUp() {
         {/* Main content container */}
         <div
           ref={container}
-          className="relative mt-12 flex flex-col md:flex-row bg-background rounded-xl over shadow-2xl mx-2 overflow-hidden"
+          className="relative mt-12 flex flex-col md:flex-row bg-card rounded-xl over shadow-2xl mx-2 overflow-hidden"
         >
           {/* Step 1: Basic Info Form - LEFT */}
           <div

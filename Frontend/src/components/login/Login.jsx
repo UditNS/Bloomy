@@ -78,9 +78,9 @@ function Login() {
         <div className="absolute -inset-1 bg-gradient-to-r from-pink-500 to-purple-700  via-fuchsia-600 rounded-xl blur-lg opacity-75 group-hover:opacity-100 group-hover:blur-xl transition duration-500 "></div>
 
         {/* Main content container */}
-        <div className="relative flex flex-col md:flex-row bg-white dark:bg-black rounded-xl overflow-hidden">
+        <div className="relative flex flex-col md:flex-row  rounded-xl overflow-hidden">
           {/* Left Side - Image (hidden on mobile) */}
-          <div className="hidden md:block md:w-96 lg:w-[500px] ">
+          <div className="hidden md:block md:w-96 lg:w-[500px] backdrop-blur-2xl bg-card/60">
             <img
               className="w-full h-full object-cover"
               src={LoginImg}
@@ -89,7 +89,7 @@ function Login() {
           </div>
 
           {/* Right Side - Login Form */}
-          <div className="w-full md:w-96 lg:w-[500px] p-8 md:p-10 flex flex-col justify-center">
+          <div className="w-full md:w-96 lg:w-[500px] p-8 md:p-10 flex flex-col justify-center bg-card backdrop-blur-lg">
             {/* Header */}
             <div className="flex flex-col items-center text-center mb-6">
               <h3 className="font-bold text-3xl md:text-5xl mb-2 bg-gradient-to-r from-pink-500 via-fuchsia-600 to-purple-600 bg-clip-text text-transparent">
