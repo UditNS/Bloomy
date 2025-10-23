@@ -5,6 +5,7 @@ import Sign2 from "../../assets/sign2.png";
 import Sign4 from "../../assets/sign4.png";
 import Avatar1 from '../../assets/Avatar1.png'
 import Avatar2 from '../../assets/Avatar2.png'
+import { Sparkles, User, Mail, Lock, Cake, Users } from 'lucide-react';
 import { Toaster, toast } from "sonner";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
@@ -205,11 +206,12 @@ function SignUp() {
 
   return (
     <div className="flex items-center justify-center min-h-screen p-4">
-      <Toaster position="bottom-right" richColors />
+      <Toaster className='hidden md:block' position="bottom-right" richColors />
+      <Toaster className='block md:hidden' position="top-center" richColors />
       {/* Card with glow effect */}
       <div className="relative group">
         {/* Animated glow border */}
-        <div className="absolute -inset-1 bg-gradient-to-r from-pink-500 via-purple-600 to-pink-500 rounded-xl blur-lg opacity-60 group-hover:opacity-100 transition duration-300 mt-12 ease-in-out"></div>
+        <div className="absolute -inset-1 bg-gradient-to-r from-pink-500 to-purple-700 via-fuchsia-600 rounded-xl blur-lg opacity-60 group-hover:opacity-100 transition duration-300 mt-12 ease-in-out"></div>
 
         {/* Main content container */}
         <div
@@ -242,19 +244,25 @@ function SignUp() {
                       {field.label}
                       <span className="text-red-500 -ml-1.5">*</span>
                     </FieldLabel>
-
+                    <div className="relative group/input">
                     <Input
                       id={field.name}
                       type={field.type}
                       placeholder={field.placeholder}
                       {...register(field.name, field.rules)}
                       onBlur={() => handleFieldBlur(field.name)}
-                      className={`border rounded-md transition-all duration-300 ${
-                        errors[field.name]
-                          ? "border-red-500 focus-visible:ring-2 focus-visible:ring-red-400 shadow-[0_0_8px_rgba(239,68,68,0.3)]"
-                          : "border-input focus-visible:ring-2 focus-visible:ring-pink-400 hover:border-pink-400"
-                      } bg-background text-foreground placeholder:text-muted-foreground`}
-                    />
+
+                      className={`border rounded-lg transition-all duration-300 
+                            ${
+                                errors[field.name]
+                                ? "border-red-500 focus-visible:ring-2 focus-visible:ring-red-400 focus:border-red-500 shadow-[0_0_12px_rgba(239,68,68,0.3)]"
+                                : "border-input focus-visible:ring-2 focus-visible:ring-pink-400 focus:border-pink-500 hover:border-pink-400 hover:shadow-[0_0_12px_rgba(236,72,153,0.15)]"
+                            } 
+                            bg-background text-foreground placeholder:text-muted-foreground
+                        `}
+                      />
+                      <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-pink-500/10 to-purple-600/10 opacity-0 group-hover/input:opacity-100 transition-opacity pointer-events-none"></div>
+                    </div>
                   </Field>
                 ))}
               </FieldGroup>
@@ -270,9 +278,10 @@ function SignUp() {
             >
               Proceed →
             </Button>
-            <div className="text-center mt-4 font-light text-foreground/60">
+            
+            <div className="text-center mt-6 text-sm text-muted-foreground">
               Existing User?{" "}
-              <Link className="hover:underline" to="/login">
+              <Link className="font-medium text-pink-500 hover:text-pink-600 hover:underline transition-colors duration-200" to="/login">
                 Proceed to Login
               </Link>
             </div>
@@ -355,7 +364,7 @@ function SignUp() {
                   <FieldLabel htmlFor="age">
                     Age<span className="text-red-500 -ml-1.5">*</span>
                   </FieldLabel>
-
+                  <div className="relative group/input">
                   <Input
                     id="age"
                     type="number"
@@ -368,12 +377,18 @@ function SignUp() {
                       },
                     })}
                     onBlur={() => handleFieldBlur("age")}
-                    className={`border transition-all duration-300 [-moz-appearance:_textfield] [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none ${
-                      errors.age
-                        ? "border-red-500 focus-visible:ring-2 focus-visible:ring-red-500"
-                        : "border-input focus-visible:ring-2 focus-visible:ring-pink-500 hover:border-pink-400"
-                    }`}
-                  />  
+                     
+                  className={`border rounded-lg transition-all duration-300 [-moz-appearance:_textfield] [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none
+                        ${
+                    errors.age
+                    ? "border-red-500 focus-visible:ring-2 focus-visible:ring-red-400 focus:border-red-500 shadow-[0_0_12px_rgba(239,68,68,0.3)]"
+                    : "border-input focus-visible:ring-2 focus-visible:ring-pink-400 focus:border-pink-500 hover:border-pink-400 hover:shadow-[0_0_12px_rgba(236,72,153,0.15)]"
+                    } 
+                    bg-background text-foreground placeholder:text-muted-foreground
+                    `}
+                  />
+                  <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-pink-500/10 to-purple-600/10 opacity-0 group-hover/input:opacity-100 transition-opacity pointer-events-none"></div> 
+                  </div>
                 </Field>
                 {/* Gender */}
                 <Field className="-mb-2">
@@ -388,24 +403,31 @@ function SignUp() {
                         : "border-input focus-visible:ring-2 focus-visible:ring-pink-400 hover:border-pink-400"
                     } bg-background text-foreground flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50`}
                   >
+
                     <option value="">Select gender</option>
                     <option value="male">Male</option>
                     <option value="female">Female</option>
                     <option value="other">Other</option>
                   </select>
+
                 </Field>
 
                 {/* Bio - Full Width */}
                 <Field className="md:col-span-2 -mb-2">
                   <FieldLabel htmlFor="description">Bio</FieldLabel>
+                  <div className="relative group/input">
                   <textarea
                     id="description"
                     placeholder="Tell us about yourself..."
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     rows={3}
-                    className="flex w-full rounded-md border  px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none  disabled:cursor-not-allowed disabled:opacity-50 resize-none border-input focus-visible:ring-2 focus-visible:ring-pink-500 hover:border-pink-400"
-                  />
+                  className={`flex w-full border rounded-lg transition-all duration-300 border-input px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-pink-400 focus:border-pink-500 hover:border-pink-400 hover:shadow-[0_0_12px_rgba(236,72,153,0.15)]
+                            bg-background text-foreground 
+                        `}
+                      />
+                      <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-pink-500/10 to-purple-600/10 opacity-0 group-hover/input:opacity-100 transition-opacity pointer-events-none"></div>
+                  </div>
                 </Field>
 
                 {/* Skills - Full Width */}
@@ -427,10 +449,11 @@ function SignUp() {
               {loading ? <Spinner /> : "Complete Sign Up"}
             </Button>
             </form>
-            
-            <div className="text-center mt-4 font-light text-foreground/60">
+
+
+            <div className="text-center mt-6 text-sm text-muted-foreground">
               Existing User?{" "}
-              <Link className="hover:underline" to="/login">
+              <Link className="font-medium text-pink-500 hover:text-pink-600 hover:underline transition-colors duration-200" to="/login">
                 Proceed to Login
               </Link>
             </div>
