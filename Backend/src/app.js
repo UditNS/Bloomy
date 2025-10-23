@@ -27,12 +27,14 @@ const authRoute = require("./routes/authRouter")
 const profileRoute = require("./routes/profileRouter")
 const requestRoute = require("./routes/requestRouter")
 const userRoute = require('./routes/userRouter')
+const chatRoute = require('./routes/chatRouter')
 
 // using the routes
 app.use('/', authRoute)
 app.use('/profile', profileRoute)
 app.use('/connection', requestRoute)
 app.use('/user', userRoute)
+app.use('/chat', chatRoute)
 
 // get user by email (find a user )
 app.get('/user', async(req, res) => {

@@ -1,5 +1,5 @@
 const socket = require('socket.io')
-
+const Chat = require('../models/chat')
 const initializeSocket = (server) => {
     // this is required to resolve the cors issue while communicating using web sockets
     const io = socket(server, {
@@ -16,11 +16,31 @@ const initializeSocket = (server) => {
             socket.join(roomId)
         })
 
-        socket.on('sendMessage', (newMessage) => {
-            const roomId = [newMessage.userId, newMessage.targetId].sort().join("_");
-            
-            io.to(roomId).emit("recieveMessage", {senderUserId: newMessage.userId, targetId: newMessage.targetId, text:newMessage.text, time:newMessage.time});
-
+        socket.on('sendMessage', async (newMessage) => {
+            try{
+                const roomId = [newMessage.userId, newMessage.targetId].sort().join("_");
+                // save the message to the db
+                // it can be possible that it is my first message or it can be a old chat
+                let chat = await Chat.findOne({
+                    participants: {$all : [newMessage.userId, newMessage.targetId]}
+                })
+                //new chat
+                if(!chat){
+                    chat = new Chat({
+                        participants: [newMessage.userId, newMessage.targetId],
+                        message: []
+                    })
+                }
+                chat.messages.push({
+                    senderId: newMessage.userId,
+                    text: newMessage.text,
+                    time: newMessage.time
+                })
+                await chat.save()
+                io.to(roomId).emit("recieveMessage", {senderUserId: newMessage.userId, targetId: newMessage.targetId, text:newMessage.text, time:newMessage.time});
+            }catch(error){
+                console.log(error.message)
+            }
         })
 
         socket.on('disconnect', () => {
