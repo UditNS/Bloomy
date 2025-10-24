@@ -1,6 +1,12 @@
-import io from 'socket.io-client'
-import { BASE_URL } from './constant'
+import io from "socket.io-client";
+import { BASE_URL } from "./constant";
 
 export const createSocketConnection = () => {
-    return io(BASE_URL) // this i telling the socket to connect to backend at this url
-}
+   // this i telling the socket to connect to backend at this url
+   if(location.hostname === 'localhost'){
+    return io(BASE_URL)
+   }
+   else{
+    return io('/', {path: '/api/socket.io'})
+   }
+};
