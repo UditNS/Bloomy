@@ -62,9 +62,12 @@ authRouter.post('/login', async (req,res) => {
             res.cookie("token", token, {
                 httpOnly: true,
                 sameSite: "lax",
-                secure: true
+                secure: process.env.NODE_ENV === "production",
+                path: "/"
             });
-            res.json({ _id, firstName, lastName, email, photo })
+            const { _id, firstName, lastName, email, photo, description, skill } = userObj;
+            res.json({ _id, firstName, lastName, email, photo, description, skill });
+
         }
         else{
             return res.status(401).json({
@@ -80,8 +83,13 @@ authRouter.post('/login', async (req,res) => {
 //logout
 authRouter.post('/logout', userAuth, async(req,res) => {
     try{
-        res.clearCookie('token', {secure:true});
-        res.send("logged out successfully")
+        res.clearCookie('token', {
+            httpOnly: true,
+            sameSite: "lax",
+            secure: process.env.NODE_ENV === "production",
+            path: "/"
+        });
+        res.status(200).send("Logged out successfully");
     }
     catch(error){
         res.status(400).send("Something went wrong" + error.message)
