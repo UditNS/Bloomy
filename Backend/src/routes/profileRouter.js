@@ -23,35 +23,46 @@ profileRouter.get('/view',userAuth, async (req, res) => {
     }
 })
 
-profileRouter.patch('/edit', userAuth, async (req, res) => { 
-    const userId = req.user._id
-    const data = req.body // data which needed to be changed
+profileRouter.patch('/edit', userAuth, async (req, res) => {
+  const userId = req.user._id;
+  const data = req.body;
 
-    const ALLOWED_UPDATES = [
-        "firstName", "lastName", "photo", "description", "gender", "age", "skill"
-    ]
+  const ALLOWED_UPDATES = [
+    "firstName", "lastName", "photo", "description", "gender", "age", "skill"
+  ];
 
-    try{
-        const isUpdateAllowed = Object.keys(data).every((k) => 
-            ALLOWED_UPDATES.includes(k)
-        )
-        
-        if(!isUpdateAllowed){
-            throw new Error("Update not allowed")
-        }
-        // here data also consist the _id but we didn't define it in schema. So, it will be ignored by mongodb
-        const updatedUser = await User.findByIdAndUpdate({_id: userId}, data, {
-            new: true, // it will return the updated document
-            runValidators: true // this will run validation 
-        });
-        res.json({
-            message: "User updated successfully",
-            user: updatedUser,
-    });
-    }catch(err){
-        res.status(500).send(`something went wrong ${err.message}`)
+  try {
+    if (Object.keys(data).length === 0) {
+      return res.status(400).json({ message: "No fields to update" });
     }
-})
+
+    const isUpdateAllowed = Object.keys(data).every((k) =>
+      ALLOWED_UPDATES.includes(k)
+    );
+
+    if (!isUpdateAllowed) {
+      throw new Error("Update not allowed");
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(userId, data, {
+      new: true,
+      runValidators: true
+    });
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({
+      message: "User updated successfully",
+      user: updatedUser
+    });
+
+  } catch (err) {
+    res.status(500).send(`Something went wrong: ${err.message}`);
+  }
+});
+
 
 profileRouter.patch('/resetPassword', userAuth, async (req, res) => {
     try{
