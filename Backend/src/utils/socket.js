@@ -18,7 +18,7 @@ const initializeSocket = (server) => {
 
         socket.on('sendMessage', async (newMessage) => {
     try{
-        console.log('📨 Received message:', newMessage);
+       
         
         const roomId = [newMessage.userId, newMessage.targetId].sort().join("_");
         
@@ -40,7 +40,7 @@ const initializeSocket = (server) => {
         })
         
         await chat.save()
-        console.log('✅ Message saved to DB');
+        
         
         io.to(roomId).emit("recieveMessage", {
             senderUserId: newMessage.userId, 
@@ -49,7 +49,6 @@ const initializeSocket = (server) => {
             time: newMessage.time
         });
         
-        console.log('✅ Message emitted to room:', roomId);
     }catch(error){
         console.error('❌ Error in sendMessage:', error);
     }
