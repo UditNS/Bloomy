@@ -47,7 +47,7 @@ authRouter.post("/signup", async (req, res) => {
 });
 
 //login
-profileRouter.patch("/edit", userAuth, async (req, res) => {
+authRouter.patch("/edit", userAuth, async (req, res) => {
   const userId = req.user._id;
   const data = req.body;
 
