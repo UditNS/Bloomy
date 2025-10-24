@@ -1,22 +1,22 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react'
-import { Heart, X, Info, Loader2, UserX, Handshake } from 'lucide-react'
+import { X, Loader2, UserX, Handshake } from 'lucide-react'
 import gsap from 'gsap'
 import axios from 'axios'
 import { useDispatch, useSelector } from 'react-redux'
 import { BASE_URL } from '../../utils/constant'
 import UserCard from './UserCard'
-import { addFeed, removeFeed } from '../../utils/feedSlice'
+import UserCardSkeleton from './UserSkeleton'
+import { Skeleton } from '@/components/ui/skeleton';
 
 function Feed() {
   const [users, setUsers] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [isLoadingMore, setIsLoadingMore] = useState(false)
-  const [page, setPage] = useState(1)
-  const [hasMore, setHasMore] = useState(true)
-  const loaderRef = useRef(null)
+  const [isLoading, setIsLoading] = useState(true) // this is for initial loading
+  const [isLoadingMore, setIsLoadingMore] = useState(false) // this loading additional users (shows bottom indicator)
+  const [page, setPage] = useState(1) // required for pagination
+  const [hasMore, setHasMore] = useState(true) // refers to more user available to loadin 
   const emptyStateRef = useRef(null)
-  const [isdisabled, setIsDisabled] = useState(false)
-  const currentUser = useSelector((store) => store.user)
+  const [isdisabled, setIsDisabled] = useState(false) // for disabling the action btn when a api call is being made 
+  const currentUser = useSelector((store) => store.user) // getting the logged in user
 
   // 1. New function to handle API fetch with pagination (replaces the incorrect inner `fetchFeed`)
   const fetchFeedApi = useCallback(async (pageNumber, limit = 10) => {
@@ -30,16 +30,11 @@ function Feed() {
 
       // Filter out current user's own profile
       if (currentUser?._id) {
-        const originalLength = fetchedUsers.length
         fetchedUsers = fetchedUsers.filter(user => user._id !== currentUser._id)
-        if (originalLength !== fetchedUsers.length) {
-          console.log(`Filtered ${originalLength - fetchedUsers.length} self-profile(s) from feed`)
-        }
       }
       if (currentUser?.email) {
         fetchedUsers = fetchedUsers.filter(user => user.email !== currentUser.email)
       }
-
       return fetchedUsers
     } catch (error) {
       console.error('Feed fetch error:', error)
@@ -56,7 +51,7 @@ function Feed() {
 
       if (Array.isArray(data)) {
         setUsers(data);
-        setHasMore(data.length === limit);
+        setHasMore(data.length === limit); // if length equals limit, there might be more number of users available
       } else {
         console.error("Unexpected feed data:", data);
         setUsers([]);
@@ -73,14 +68,14 @@ function Feed() {
     }
   }, [fetchFeedApi]);
 
-  // Initial load effect
+  // Initial load effect -> only called once at the time of initial loading. Runs loadInitialFeed when component mounts or when function reference changes
   useEffect(() => {
     loadInitialFeed()
   }, [loadInitialFeed])
 
   // 3. Function to load subsequent pages
   const loadMoreUsers = useCallback(async () => {
-    if (isLoadingMore || !hasMore) return
+    if (isLoadingMore || !hasMore) return //Prevents duplicate loading if already loading or no more users exist
 
     setIsLoadingMore(true)
     const limit = 10;
@@ -100,7 +95,7 @@ function Feed() {
     } finally {
       setIsLoadingMore(false)
     }
-  }, [isLoadingMore, hasMore, page, fetchFeedApi])
+  }, [isLoadingMore, hasMore, page, fetchFeedApi]) //Only recreate this function if any of these dependencies change
 
   // 4. Added missing function for connection request
   const sendConnectionRequest = async (status, targetUserId) => {
@@ -125,45 +120,26 @@ function Feed() {
   }
 
 
-  // Loader rotation animation
-  useEffect(() => {
-    if (isLoading && loaderRef.current) {
-      gsap.to(loaderRef.current, {
-        rotation: 360,
-        duration: 1,
-        repeat: -1,
-        ease: 'linear'
-      })
-    }
-  }, [isLoading])
+
 
   // Empty state animation
   useEffect(() => {
-    if (!isLoading && users.length === 0 && emptyStateRef.current) {
-      gsap.fromTo(
-        emptyStateRef.current,
-        {
-          scale: 0.5,
-          opacity: 0,
-          y: 50
-        },
-        {
-          scale: 1,
-          opacity: 1,
-          y: 0,
-          duration: 0.6,
-          ease: 'back.out(1.7)'
-        }
-      )
-    }
-  }, [isLoading, users])
+  if (!isLoading && users.length === 0 && emptyStateRef.current) {
+    
+    gsap.fromTo(
+      emptyStateRef.current,
+      { scale: 0.5, opacity: 0, y: 50 },
+      { scale: 1, opacity: 1, y: 0, duration: 0.6, ease: 'back.out(1.7)', }
+    );
+  }
+}, [isLoading, users]);
 
   const handleSwipe = useCallback(async (direction, user) => {
     const status = direction === 'right' ? 'likes' : 'pass'
 
     // Remove user from feed immediately
     setUsers(prev => {
-      const newUsers = prev.filter(u => u._id !== user._id)
+      const newUsers = prev.filter(u => u._id !== user._id) // Immediately removes swiped user from UI for instant feedback
 
       // Load more users if running low (less than 3 remaining)
       if (newUsers.length < 3 && hasMore && !isLoadingMore) {
@@ -178,7 +154,6 @@ function Feed() {
     // Send API request
     try {
       await sendConnectionRequest(status, user._id)
-      console.log(`✓ ${status} sent successfully for ${user.firstName}`)
     } catch (error) {
       console.error('Failed to send connection request:', error)
       // Note: In a real app, you might want to re-add the card or show an error state
@@ -186,45 +161,35 @@ function Feed() {
 
   }, [hasMore, isLoadingMore, loadMoreUsers]) // Added loadMoreUsers to dependency array
 
-  if (isLoading && users.length === 0) { // Only show full-screen loader on initial load
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="text-center">
-          <div
-            ref={loaderRef}
-            className="w-16 h-16 md:w-20 md:h-20 border-4 border-primary/20 border-t-primary rounded-full mx-auto"
-          />
-          <p className="mt-4 md:mt-6 text-base md:text-lg text-muted-foreground font-medium">
-            Finding amazing people...
-          </p>
-        </div>
-      </div>
-    )
-  }
-
-  if (users.length === 0 && !isLoading) { // Show empty state only when not loading
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-background px-4">
-        <div ref={emptyStateRef} className="text-center max-w-md">
-          <div className="w-24 h-24 md:w-32 md:h-32 mx-auto mb-6 md:mb-8 rounded-full bg-gradient-to-br from-primary/20 via-primary/10 to-primary/5 flex items-center justify-center shadow-xl">
-            <UserX className="w-12 h-12 md:w-16 md:h-16 text-primary" strokeWidth={1.5} />
-          </div>
-          <h3 className="text-2xl md:text-3xl lg:text-4xl text-foreground font-bold mb-3 md:mb-4">
-            No More Profiles
-          </h3>
-          <p className="text-muted-foreground text-sm md:text-base lg:text-lg leading-relaxed">
-            You've seen all available profiles. Check back soon for new connections!
-          </p>
-        </div>
-      </div>
-    )
-  }
-
+  // when user logged in for the first time and feed is loading
+  if (users.length === 0 && !isLoading) {
   return (
-    <div className="relative min-h-screen bg-background pt-20 pb-32 px-4">
-      <div className="relative w-full max-w-lg mx-auto" style={{ height: 'calc(100vh - 240px)', minHeight: '500px' }}>
-        {/* Stacked Cards */}
-        {users.slice(0, 3).map((user, index) => (
+    <div className="flex items-center justify-center min-h-screen bg-background px-4">
+      <div ref={emptyStateRef} className="text-center max-w-md">
+        <div className="w-24 h-24 md:w-32 md:h-32 mx-auto mb-6 md:mb-8 rounded-full bg-gradient-to-br from-primary/20 via-primary/10 to-primary/5 flex items-center justify-center shadow-xl">
+          <UserX className="w-12 h-12 md:w-16 md:h-16 text-primary" strokeWidth={1.5} />
+        </div>
+        <h3 className="text-2xl md:text-3xl lg:text-4xl text-foreground font-bold mb-3 md:mb-4">
+          No More Profiles
+        </h3>
+        <p className="text-muted-foreground text-sm md:text-base lg:text-lg leading-relaxed">
+          You've seen all available profiles. Check back soon for new connections!
+        </p>
+      </div>
+    </div>
+  )
+}
+
+return (
+  <div className="relative min-h-screen bg-background pt-20 pb-32 px-4">
+    <div className="relative w-full max-w-lg mx-auto" style={{ height: 'calc(100vh - 240px)', minHeight: '500px' }}>
+      {/* Stacked Cards */}
+      {isLoading && users.length === 0 ? (
+        // Show skeleton during initial load
+        <UserCardSkeleton />
+      ) : (
+        // Show actual cards
+        users.slice(0, 3).map((user, index) => (
           <div
             key={user._id}
             className="absolute inset-0 transition-all duration-300 ease-out"
@@ -239,16 +204,26 @@ function Feed() {
               user={user}
               onSwipe={handleSwipe}
               isTop={index === 0}
+              isDisabled={isdisabled}
             />
           </div>
-        ))}
-      </div>
+        ))
+      )}
+    </div>
 
-      {/* Action Buttons - Fixed at bottom, outside card stack */}
-      {users.length > 0 && (
-        <div className=" flex items-center justify-center w-full mt-10 gap-6 z-50">
+    {/* Action Buttons - Shows skeleton or actual buttons */}
+    <div className="flex items-center justify-center w-full mt-10 gap-6 z-50">
+      {isLoading && users.length === 0 ? (
+        // Skeleton buttons during initial load
+        <>
+          <Skeleton className="w-16 h-16 md:w-20 md:h-20 rounded-full" />
+          <Skeleton className="w-16 h-16 md:w-20 md:h-20 rounded-full" />
+        </>
+      ) : users.length > 0 ? (
+        // Actual buttons when users are loaded
+        <>
           <button
-          disabled={isdisabled}
+            disabled={isdisabled}
             onClick={() => {
               const topCard = users[0]
               if (topCard) {
@@ -262,7 +237,6 @@ function Feed() {
                     ease: 'power2.inOut'
                   })
                 }
-                // Execute swipe after the button animation starts
                 setTimeout(() => {
                   handleSwipe('left', topCard)
                 }, 80)
@@ -275,7 +249,7 @@ function Feed() {
           </button>
 
           <button
-          disabled={isdisabled}
+            disabled={isdisabled}
             onClick={() => {
               const topCard = users[0]
               if (topCard) {
@@ -289,7 +263,6 @@ function Feed() {
                     ease: 'power2.inOut'
                   })
                 }
-                // Execute swipe after the button animation starts
                 setTimeout(() => {
                   handleSwipe('right', topCard)
                 }, 80)
@@ -298,22 +271,23 @@ function Feed() {
             className="btn-like w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-pink-500 via-fuchsia-600 to-purple-500 shadow-2xl flex items-center justify-center hover:from-pink-600 hover:via-fuchsia-700 hover:to-purple-600 group transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
             aria-label="Like"
           >
-            <Handshake className="w-8 h-8 md:w-10 md:h-10 text-white f group-hover:scale-110 transition-transform" />
+            <Handshake className="w-8 h-8 md:w-10 md:h-10 text-white group-hover:scale-110 transition-transform" />
           </button>
-        </div>
-      )}
-
-      {/* Loading More Indicator */}
-      {isLoadingMore && (
-        <div className="fixed bottom-32 left-1/2 -translate-x-1/2 z-40">
-          <div className="bg-card/90 backdrop-blur-sm border border-border rounded-full px-4 py-2 shadow-lg flex items-center gap-2">
-            <Loader2 className="w-4 h-4 text-primary animate-spin" />
-            <span className="text-sm text-foreground font-medium">Loading more...</span>
-          </div>
-        </div>
-      )}
+        </>
+      ) : null}
     </div>
-  )
+
+    {/* Loading More Indicator */}
+    {isLoadingMore && (
+      <div className="fixed bottom-32 left-1/2 -translate-x-1/2 z-40">
+        <div className="bg-card/90 backdrop-blur-sm border border-border rounded-full px-4 py-2 shadow-lg flex items-center gap-2">
+          <Loader2 className="w-4 h-4 text-primary animate-spin" />
+          <span className="text-sm text-foreground font-medium">Loading more...</span>
+        </div>
+      </div>
+    )}
+  </div>
+)
 }
 
 export default Feed

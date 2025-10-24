@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import { X, Info } from 'lucide-react'
 import gsap from 'gsap'
 
-function UserCard({ user, onSwipe, isTop }) {
+function UserCard({ user, onSwipe, isTop, isDisabled }) {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)
@@ -18,41 +18,28 @@ function UserCard({ user, onSwipe, isTop }) {
   // Card entrance animation
   useEffect(() => {
     if (cardRef.current && isTop) {
-      gsap.fromTo(
-        cardRef.current,
-        {
-          scale: 0.85,
-          opacity: 0,
-          y: 50,
-          rotateY: -10
-        },
-        {
-          scale: 1,
-          opacity: 1,
-          y: 0,
-          rotateY: 0,
-          duration: 0.5,
-          ease: 'back.out(1.5)',
-          clearProps: 'transform'
-        }
-      )
+      gsap.to(cardRef.current, {
+        scale: 1,
+        opacity: 1,
+        y: 0,
+        rotateY: 0,
+        duration: 0.5,
+        ease: 'back.out(1.5)',
+        clearProps: 'transform'
+      })
     }
   }, [user._id, isTop])
 
   // Info button entrance
   useEffect(() => {
     if (infoButtonRef.current && !showInfo && isTop) {
-      gsap.fromTo(
-        infoButtonRef.current,
-        { scale: 0, rotation: -90 },
-        {
-          scale: 1,
-          rotation: 0,
-          duration: 0.4,
-          ease: 'back.out(2)',
-          delay: 0.2
-        }
-      )
+      gsap.to(infoButtonRef.current, {
+        scale: 1,
+        rotation: 360,
+        duration: 0.5,
+        ease: 'back.out(2)',
+        delay: 0.2
+      })
     }
   }, [showInfo, user._id, isTop])
 
@@ -61,25 +48,27 @@ function UserCard({ user, onSwipe, isTop }) {
     if (showInfo && infoPanelRef.current) {
       gsap.fromTo(
         infoPanelRef.current,
-        { opacity: 0, scale: 0.95 },
+        { opacity: 0, scale: 0.9 },
         {
           opacity: 1,
           scale: 1,
           duration: 0.25,
-          ease: 'power2.out'
+          ease: 'sine.inOut'
         }
       )
     }
   }, [showInfo])
 
   const handleDragStart = (clientX, clientY) => {
-    if (isAnimating || !isTop) return
+    // Prevent dragging if disabled, animating, or not top card
+    if (isDisabled || isAnimating || !isTop) return
     setIsDragging(true)
     startPosRef.current = { x: clientX, y: clientY }
   }
 
   const handleDragMove = (clientX, clientY) => {
-    if (!isDragging || isAnimating || !isTop) return
+    // Prevent drag move if disabled
+    if (!isDragging || isAnimating || !isTop || isDisabled) return
 
     const deltaX = clientX - startPosRef.current.x
     const deltaY = clientY - startPosRef.current.y
@@ -108,7 +97,8 @@ function UserCard({ user, onSwipe, isTop }) {
   }
 
   const handleDragEnd = () => {
-    if (!isDragging || isAnimating || !isTop) return
+    // Prevent drag end actions if disabled
+    if (!isDragging || isAnimating || !isTop || isDisabled) return
     setIsDragging(false)
 
     const swipeThreshold = 80
@@ -139,6 +129,8 @@ function UserCard({ user, onSwipe, isTop }) {
   }
 
   const executeSwipe = (direction) => {
+    if (isDisabled) return // Extra safety check
+    
     setIsAnimating(true)
     const targetX = direction === 'right' ? 1000 : -1000
     const targetRotation = direction === 'right' ? 25 : -25
@@ -164,32 +156,45 @@ function UserCard({ user, onSwipe, isTop }) {
     <div className="absolute inset-0 flex items-center justify-center">
       <div
         ref={cardRef}
-        onMouseDown={isTop ? (e) => {
+        onMouseDown={isTop && !isDisabled ? (e) => {
           e.preventDefault()
           handleDragStart(e.clientX, e.clientY)
         } : undefined}
-        onMouseMove={isDragging ? (e) => handleDragMove(e.clientX, e.clientY) : undefined}
-        onMouseUp={handleDragEnd}
-        onMouseLeave={handleDragEnd}
-        onTouchStart={isTop ? (e) => {
+        onMouseMove={isDragging && !isDisabled ? (e) => handleDragMove(e.clientX, e.clientY) : undefined}
+        onMouseUp={!isDisabled ? handleDragEnd : undefined}
+        onMouseLeave={!isDisabled ? handleDragEnd : undefined}
+        onTouchStart={isTop && !isDisabled ? (e) => {
           const touch = e.touches[0]
           handleDragStart(touch.clientX, touch.clientY)
         } : undefined}
         onTouchMove={(e) => {
-          if (isDragging) {
+          if (isDragging && !isDisabled) {
             const touch = e.touches[0]
             handleDragMove(touch.clientX, touch.clientY)
           }
         }}
-        onTouchEnd={handleDragEnd}
+        onTouchEnd={!isDisabled ? handleDragEnd : undefined}
         style={{
           transform: isDragging ? `translate(${dragOffset.x}px, ${dragOffset.y}px) rotate(${rotation}deg)` : undefined,
-          cursor: isTop ? (isDragging ? 'grabbing' : 'grab') : 'default',
+          cursor: isTop ? (isDisabled ? 'not-allowed' : isDragging ? 'grabbing' : 'grab') : 'default',
           transition: isDragging ? 'none' : undefined,
-          pointerEvents: isTop ? 'auto' : 'none'
+          pointerEvents: isTop ? 'auto' : 'none',
+          opacity: isDisabled ? 0.6 : 1
         }}
         className="w-full h-full rounded-2xl overflow-hidden relative shadow-2xl select-none bg-card border-4 border-border"
       >
+        {/* Disabled Overlay */}
+        {isDisabled && (
+          <div className="absolute inset-0 bg-black/20 backdrop-blur-[2px] z-30 flex items-center justify-center">
+            <div className="bg-background/90 rounded-full px-6 py-3 shadow-xl">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                <span className="text-sm font-medium text-foreground">Processing...</span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Image */}
         <img
           className="w-full h-full object-cover"
@@ -224,8 +229,9 @@ function UserCard({ user, onSwipe, isTop }) {
         {!showInfo && isTop && (
           <button
             ref={infoButtonRef}
-            onClick={() => setShowInfo(true)}
-            className="absolute top-4 right-4 w-12 h-12 rounded-full bg-background/90 backdrop-blur-sm shadow-lg flex items-center justify-center hover:bg-background hover:scale-110 transition-all z-10"
+            onClick={() => !isDisabled && setShowInfo(true)}
+            disabled={isDisabled}
+            className="absolute top-4 right-4 w-12 h-12 rounded-full bg-background/90 backdrop-blur-sm shadow-lg flex items-center justify-center hover:bg-background hover:scale-110 transition-all z-10 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
             <Info className="w-6 h-6 text-foreground" />
           </button>
@@ -266,7 +272,7 @@ function UserCard({ user, onSwipe, isTop }) {
         {showInfo && (
           <div
             ref={infoPanelRef}
-            className="absolute inset-0 bg-black/95 backdrop-blur-xl p-6 overflow-y-auto pointer-events-auto z-20"
+            className="absolute inset-0 bg-black/75 backdrop-blur-xl p-6 overflow-y-auto pointer-events-auto z-20"
           >
             <button
               onClick={() => setShowInfo(false)}
