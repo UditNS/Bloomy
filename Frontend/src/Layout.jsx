@@ -1,125 +1,91 @@
-import React, { useEffect, useState, useRef } from 'react'
-import { Outlet } from 'react-router'
-import NavBar from './components/navBar/NavBar'
-import Footer from './components/Footer'
-import axios from 'axios'
-import { BASE_URL } from './utils/constant'
-import { useDispatch } from 'react-redux'
-import { addUser } from './utils/userSlice'
-import { useNavigate } from 'react-router'
-import { useSelector } from 'react-redux'
-import gsap from 'gsap'
+import React, { useEffect, useState, useRef } from "react";
+import { Outlet, useNavigate } from "react-router";
+import NavBar from "./components/navBar/NavBar";
+import Footer from "./components/Footer";
+import axios from "axios";
+import { BASE_URL } from "./utils/constant";
+import { useDispatch, useSelector } from "react-redux";
+import { addUser } from "./utils/userSlice";
+import gsap from "gsap";
 
 function Layout() {
   const dispatch = useDispatch();
-  const navigate = useNavigate()
-  const user = useSelector((store) => (store.user))
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
-  const pulseRefs = useRef([])
+  const navigate = useNavigate();
+  const user = useSelector((store) => store.user);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const barsRef = useRef([]);
+
   const fetchUser = async () => {
-    // whenever the page reloads the user from the store vanished which causes error in loading the profile pic
     try {
-      const user = await axios.get(BASE_URL + '/profile/view',{
-        withCredentials: true
-      })
-      dispatch(addUser(user.data))
-    }
-    catch(error){
-      // Only redirect to login if user is on a protected route
-      const publicRoutes = ['/login', '/signup'];
-      if (!publicRoutes.includes(location.pathname)) {
-        navigate('/login');
-      }
-    }
-    finally {
-      setIsCheckingAuth(false)
-    }
-  }
-
-  useEffect(() => {
-    if(!user){
-      fetchUser();
-    }
-  }, [])
-
-  useEffect(() => {
-    if (isCheckingAuth && pulseRefs.current.length === 3) {
-      // Create a persistent Timeline
-      const tl = gsap.timeline({ 
-        repeat: -1, 
-        defaults: { duration: 0.4, ease: "power2.inOut" } 
+      const res = await axios.get(BASE_URL + "/profile/view", {
+        withCredentials: true,
       });
+      dispatch(addUser(res.data));
+    } catch (error) {
+      const publicRoutes = ["/login", "/signup", "/"];
+      if (!publicRoutes.includes(location.pathname)) navigate("/");
+    } finally {
+      setIsCheckingAuth(false);
+    }
+  };
 
-      // Stagger the animation across the three dots
-      tl.to(pulseRefs.current, {
-          scale: 1.5, // Scale up
-          backgroundColor: '#ec4899', // Highlight color (pink-500 equivalent)
-          opacity: 1,
-          stagger: {
-            each: 0.15, // Delay between each dot starting
-            repeat: -1, // Make the stagger repeat
-            yoyo: true // Smoothly transition back
+  useEffect(() => {
+    if (!user) fetchUser();
+  }, []);
+
+  // GSAP Animation for wave loader
+  useEffect(() => {
+    if (isCheckingAuth && barsRef.current.length > 0) {
+      barsRef.current.forEach((bar, i) => {
+        gsap.fromTo(
+          bar,
+          { scaleY: 0.4, duration:2 },
+          {
+            scaleY: 1.6,
+            duration: 0.5,
+            ease: "sine.inOut",
+            repeat: -1,
+            yoyo: true,
+            delay: i * 0.1,
           }
-      }, 0); // Start the animation immediately
-
-      // Add a slight movement effect for depth (optional but nice)
-      tl.to(pulseRefs.current, {
-          y: -5,
-          stagger: 0.15,
-          duration: 0.4,
-          ease: "power2.inOut"
-      }, 0); // Start at the same time
-
-      // Set initial styles for all dots before animation begins
-      gsap.set(pulseRefs.current, { 
-          scale: 1, 
-          opacity: 0.5,
-          backgroundColor: '#e5e7eb' // Initial muted color (gray-200 equivalent)
+        );
       });
     }
   }, [isCheckingAuth]);
 
-
-  // -----------------------------------------------------------------
-  // 2. LOADER RETURN BLOCK (Replaces the old one)
-  // -----------------------------------------------------------------
   if (isCheckingAuth) {
     return (
       <div className="flex items-center justify-center h-screen bg-background">
         <div className="text-center">
-          
-          <div className="flex space-x-3 justify-center mb-6">
-            {/* Dot 1 */}
-            <div 
-              ref={el => pulseRefs.current[0] = el}
-              className="w-4 h-4 rounded-full shadow-md"
-            />
-            {/* Dot 2 */}
-            <div 
-              ref={el => pulseRefs.current[1] = el}
-              className="w-4 h-4 rounded-full shadow-md"
-            />
-            {/* Dot 3 */}
-            <div 
-              ref={el => pulseRefs.current[2] = el}
-              className="w-4 h-4 rounded-full shadow-md"
-            />
+          {/* Loader Animation */}
+          <div className="flex space-x-2 justify-center mb-6">
+            <div className="wave-loader flex items-end h-16">
+              {[...Array(6)].map((_, i) => (
+                <div
+                  key={i}
+                  ref={(el) => (barsRef.current[i] = el)}
+                  className="bar w-2 mx-1 rounded-full bg-gradient-to-br from-pink-500 via-fuchsia-500 to-purple-600 shadow-xl"
+                ></div>
+              ))}
+            </div>
           </div>
-          
-          <p className="mt-4 text-base text-muted-foreground font-medium">
-            Checking authentication...
+
+          {/* Text */}
+          <p className="mt-10 text-base text-muted-foreground animate-pulse font-medium">
+            Preparing your experience...
           </p>
         </div>
       </div>
     );
   }
+
   return (
     <>
-        <NavBar />
-        <Outlet /> {/*here header aur footer same but use andar component changes as route changes */}
-        <Footer />
+      <NavBar />
+      <Outlet />
+      <Footer />
     </>
-  )
+  );
 }
 
-export default Layout
+export default Layout;
