@@ -50,7 +50,6 @@ authRouter.post('/login', async (req,res) => {
         const userObj = await User.findOne({ email:email })
         if(!userObj){
             return res.status(401).json({
-                success: false,
                 message: "Invalid email or password"
             });
         }
@@ -63,9 +62,9 @@ authRouter.post('/login', async (req,res) => {
             res.cookie("token", token, {
                 httpOnly: true,
                 sameSite: "lax",
-                secure: false
+                secure: true
             });
-            res.send(userObj)
+            res.json({ _id, firstName, lastName, email, photo })
         }
         else{
             return res.status(401).json({

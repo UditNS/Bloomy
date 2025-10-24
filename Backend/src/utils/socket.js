@@ -17,31 +17,43 @@ const initializeSocket = (server) => {
         })
 
         socket.on('sendMessage', async (newMessage) => {
-            try{
-                const roomId = [newMessage.userId, newMessage.targetId].sort().join("_");
-                // save the message to the db
-                // it can be possible that it is my first message or it can be a old chat
-                let chat = await Chat.findOne({
-                    participants: {$all : [newMessage.userId, newMessage.targetId]}
-                })
-                //new chat
-                if(!chat){
-                    chat = new Chat({
-                        participants: [newMessage.userId, newMessage.targetId],
-                        message: []
-                    })
-                }
-                chat.messages.push({
-                    senderId: newMessage.userId,
-                    text: newMessage.text,
-                    time: newMessage.time
-                })
-                await chat.save()
-                io.to(roomId).emit("recieveMessage", {senderUserId: newMessage.userId, targetId: newMessage.targetId, text:newMessage.text, time:newMessage.time});
-            }catch(error){
-                console.log(error.message)
-            }
+    try{
+        console.log('📨 Received message:', newMessage);
+        
+        const roomId = [newMessage.userId, newMessage.targetId].sort().join("_");
+        
+        let chat = await Chat.findOne({
+            participants: {$all : [newMessage.userId, newMessage.targetId]}
         })
+        
+        if(!chat){
+            chat = new Chat({
+                participants: [newMessage.userId, newMessage.targetId],
+                messages: []
+            })
+        }
+        
+        chat.messages.push({
+            senderId: newMessage.userId,
+            text: newMessage.text,
+            time: newMessage.time
+        })
+        
+        await chat.save()
+        console.log('✅ Message saved to DB');
+        
+        io.to(roomId).emit("recieveMessage", {
+            senderUserId: newMessage.userId, 
+            targetId: newMessage.targetId, 
+            text: newMessage.text, 
+            time: newMessage.time
+        });
+        
+        console.log('✅ Message emitted to room:', roomId);
+    }catch(error){
+        console.error('❌ Error in sendMessage:', error);
+    }
+})
 
         socket.on('disconnect', () => {
 
