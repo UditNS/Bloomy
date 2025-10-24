@@ -9,7 +9,7 @@ export default function ProtectedRoute({ children }) {
   
   // If user is not logged in, redirect to login
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/" replace />;
   }
   
   // If user is logged in, render the protected component
@@ -22,7 +22,7 @@ export function AuthRoute({ children }) {
   
   // If user is already logged in, redirect to home
   if (user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/feed" replace />;
   }
   
   // If user is not logged in, show login/signup page
