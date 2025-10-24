@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { Edit2, Save, XCircle, Upload } from "lucide-react";
+import { Edit2, Save, XCircle, Upload, Cake, Users, FileText, User2} from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { BASE_URL } from "../../utils/constant";
@@ -142,8 +142,7 @@ function Profile() {
       setIsEditing(false);
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to save changes");
-    }
-    finally{
+    } finally {
       setSaveData(false);
     }
   };
@@ -158,11 +157,11 @@ function Profile() {
   if (isLoading || !User) {
     return <ProfileSkeleton />;
   }
-
   return (
     <div className="flex items-center justify-center min-h-screen w-full pt-20 pb-8 px-4">
       <div className="w-full relative max-w-4xl rounded-2xl shadow-xl overflow-hidden">
-        <Toaster position="bottom-right" richColors />
+        <Toaster className="hidden md:block" position="bottom-right" richColors />
+        <Toaster className="block md:hidden" position="top-center" richColors />
 
         {/* Header Section */}
         <div className="relative h-32 bg-gradient-to-r from-purple-500 to-pink-500">
@@ -225,7 +224,11 @@ function Profile() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* First Name */}
             <Field>
-              <FieldLabel htmlFor="firstName">First Name</FieldLabel>
+              <FieldLabel htmlFor="firstName" >
+                <div className="flex items-center gap-2 text-foreground mb-2" ><User2 className="w-4 h-4 text-pink-500" />
+                First Name
+                </div>
+              </FieldLabel>
               <Input
                 id="firstName"
                 type="text"
@@ -238,7 +241,11 @@ function Profile() {
 
             {/* Last Name */}
             <Field>
-              <FieldLabel htmlFor="lastName">Last Name</FieldLabel>
+              <FieldLabel htmlFor="lastName" >
+                <div className="flex items-center gap-2 text-foreground mb-2" ><User2 className="w-4 h-4 text-cyan-500" />
+                Last Name
+                </div>
+              </FieldLabel>
               <Input
                 id="lastName"
                 type="text"
@@ -251,7 +258,11 @@ function Profile() {
 
             {/* Age */}
             <Field>
-              <FieldLabel htmlFor="age">Age</FieldLabel>
+              <FieldLabel htmlFor="age" >
+                <div className="flex items-center gap-2 text-foreground mb-2" ><Cake className="w-4 h-4 text-green-500" />
+                Age
+                </div>
+              </FieldLabel>
               <Input
                 id="age"
                 type="number"
@@ -264,7 +275,11 @@ function Profile() {
 
             {/* Gender */}
             <Field>
-              <FieldLabel htmlFor="gender">Gender</FieldLabel>
+              <FieldLabel htmlFor="Gender" >
+                <div className="flex items-center gap-2 text-foreground mb-2" ><Users className="w-4 h-4 text-purple-500" />
+                Gender
+                </div>
+              </FieldLabel>
               <select
                 id="gender"
                 value={formData?.gender}
@@ -281,7 +296,11 @@ function Profile() {
 
             {/* Bio - Full Width */}
             <Field className="md:col-span-2">
-              <FieldLabel htmlFor="description">Bio</FieldLabel>
+              <FieldLabel htmlFor="description" >
+                <div className="flex items-center gap-2 text-foreground mb-2" ><FileText className="w-4 h-4 text-fuchsia-500" />
+                Bio
+                </div>
+              </FieldLabel>
               <textarea
                 id="description"
                 placeholder="Let other people know about you"

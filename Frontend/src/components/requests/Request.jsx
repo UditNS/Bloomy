@@ -87,7 +87,8 @@ function Request() {
   return (
     <div className="min-h-screen bg-background pt-20 pb-12 px-4">
       <div className="max-w-6xl mx-auto">
-        <Toaster richColors position="bottom-right" />
+        <Toaster className="hidden md:block" position="bottom-right" richColors />
+        <Toaster className="block md:hidden" position="top-center" richColors />
         {/* Header */}
         <div ref={headerRef} className="mb-10">
           <div className="flex items-center gap-4 mb-3">

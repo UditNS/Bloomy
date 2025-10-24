@@ -6,7 +6,7 @@ import ConnectionCard from './ConnectionCard'
 import ConnectionSkeleton from './ConnectionSkeleton'
 import axios from 'axios'
 import {BASE_URL} from '../../utils/constant'
-import {Link} from 'react-router'
+import {Link, useNavigate} from 'react-router'
 import search from '../../utils/search'
 import gsap from 'gsap'
 // Main Connections Component
@@ -16,6 +16,8 @@ function Connection() {
   const [searchQuery, setSearchQuery] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   
+  const navigate = useNavigate();
+
   const headerRef = useRef(null)
   const searchRef = useRef(null)
 
@@ -57,7 +59,7 @@ function Connection() {
   }, [searchQuery, connections])
 
   const handleMessage = (connection) => {
-    alert(`Opening chat with ${connection.firstName}...`)
+    navigate('/chat/' + connection._id)
   }
 
   const handleRemove = (connection) => {

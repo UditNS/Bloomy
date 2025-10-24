@@ -5,7 +5,7 @@ import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { addUser } from "../../utils/userSlice";
 import { Toaster, toast } from "sonner";
-import { Lock, Mail, Sparkles } from "lucide-react";
+import { Lock, Mail } from "lucide-react";
 import { Field, FieldGroup, FieldLabel, FieldSet } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -127,7 +127,7 @@ function Login() {
                         onBlur={() => handleFieldBlur("email")}
                         className={`border rounded-lg transition-all duration-300 
                             ${
-                                errors.email
+                              errors.email
                                 ? "border-red-500 focus-visible:ring-2 focus-visible:ring-red-400 focus:border-red-500 shadow-[0_0_12px_rgba(239,68,68,0.3)]"
                                 : "border-input focus-visible:ring-2 focus-visible:ring-pink-400 focus:border-pink-500 hover:border-pink-400 hover:shadow-[0_0_12px_rgba(236,72,153,0.15)]"
                             } 
@@ -166,7 +166,7 @@ function Login() {
                         onBlur={() => handleFieldBlur("password")}
                         className={`border rounded-lg transition-all duration-300 
                             ${
-                                errors.password
+                              errors.password
                                 ? "border-red-500 focus-visible:ring-2 focus-visible:ring-red-400 focus:border-red-500 shadow-[0_0_12px_rgba(239,68,68,0.3)]"
                                 : "border-input focus-visible:ring-2 focus-visible:ring-pink-400 focus:border-pink-500 hover:border-pink-400 hover:shadow-[0_0_12px_rgba(236,72,153,0.15)]"
                             } 
