@@ -1,27 +1,28 @@
 import React from "react";
-import NavBar from "./components/navBar/NavBar";
 import { ThemeProvider } from "./components/navBar/ThemeProvider";
 import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider } from "react-router";
-import Login from "./components/login/Login";
+import LoginPage from "./pages/Login";
 import Layout from "./Layout";
-import Feed from "./components/feed/Feed";
-import Profile from "./components/profile/Profile";
-import Connection from "./components/connections/Connection";
-import Request from "./components/requests/Request";
-import Signup from "./components/signUp/SignUp";
+import Feeds from "./pages/Feeds";
+import Connections from "./pages/Connections";
+import Requests from "./pages/Requests";
+import Signup from "./pages/Signup";
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthRoute } from './components/ProtectedRoute';
+import Chats from "./pages/Chats";
+import Home from "./pages/Home";
+import UserProfile from "./pages/UserProfile";
 
 function App() {
   const router = createBrowserRouter(
     createRoutesFromElements(
-        <Route path="/" element={<Layout />}>
+        <Route path="" element={<Layout />}>
           {/* Public routes - redirect to home if logged in */}
           <Route 
             path="login" 
             element={
               <AuthRoute>
-                <Login />
+                <LoginPage />
               </AuthRoute>
             } 
           />
@@ -33,13 +34,21 @@ function App() {
               </AuthRoute>
             } 
           />
-
-          {/* Protected routes - require authentication */}
           <Route 
             path="/" 
             element={
+              <AuthRoute>
+                <Home />
+              </AuthRoute>
+            } 
+          />
+
+          {/* Protected routes - require authentication */}
+          <Route 
+            path="feed" 
+            element={
               <ProtectedRoute>
-                <Feed />
+                <Feeds />
               </ProtectedRoute>
             } 
           />
@@ -47,7 +56,7 @@ function App() {
             path="profile" 
             element={
               <ProtectedRoute>
-                <Profile />
+                <UserProfile />
               </ProtectedRoute>
             } 
           />
@@ -55,7 +64,15 @@ function App() {
             path="connections" 
             element={
               <ProtectedRoute>
-                <Connection />
+                <Connections />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="chat/:targetUserId" 
+            element={
+              <ProtectedRoute>
+                <Chats />
               </ProtectedRoute>
             } 
           />
@@ -63,7 +80,7 @@ function App() {
             path="requests" 
             element={
               <ProtectedRoute>
-                <Request />
+                <Requests />
               </ProtectedRoute>
             } 
           />
@@ -86,7 +103,7 @@ export default App;
 Flow of the app
 Body
   NavBar
-  Route = '/' -> Feed
+  Route = '/feed' -> Feed
   Route = '/login' -> Login
   Route = '/connection' -> Connections
   Route = '/profile' -> profile page
