@@ -32,22 +32,50 @@ profileRouter.patch('/edit', userAuth, async (req, res) => {
   ];
 
   try {
+    // Early validation
     if (Object.keys(data).length === 0) {
       return res.status(400).json({ message: "No fields to update" });
     }
 
+    // Check allowed updates
     const isUpdateAllowed = Object.keys(data).every((k) =>
       ALLOWED_UPDATES.includes(k)
     );
 
     if (!isUpdateAllowed) {
-      throw new Error("Update not allowed");
+      return res.status(400).json({ message: "Update not allowed" });
     }
 
-    const updatedUser = await User.findByIdAndUpdate(userId, data, {
-      new: true,
-      runValidators: true
-    });
+    // 🔥 Optimize photo handling
+    if (data.photo) {
+      // Check if photo is too large (> 2MB)
+      const photoSize = Buffer.byteLength(data.photo, 'utf8');
+      const maxSize = 2 * 1024 * 1024; // 5MB
+
+      if (photoSize > maxSize) {
+        return res.status(400).json({ 
+          message: "Photo is too large. Maximum size is 2MB" 
+        });
+      }
+
+      // Validate Base64 format
+      if (!data.photo.startsWith('data:image/')) {
+        return res.status(400).json({ 
+          message: "Invalid photo format" 
+        });
+      }
+    }
+
+    // 🔥 Use lean() for faster query if you don't need Mongoose document methods
+    const updatedUser = await User.findByIdAndUpdate(
+      userId, 
+      data, 
+      {
+        new: true,
+        runValidators: true,
+        lean: true // Faster, returns plain JS object
+      }
+    ).select('-password'); // Don't return password
 
     if (!updatedUser) {
       return res.status(404).json({ message: "User not found" });
@@ -59,7 +87,11 @@ profileRouter.patch('/edit', userAuth, async (req, res) => {
     });
 
   } catch (err) {
-    res.status(500).send(`Something went wrong: ${err.message}`);
+    console.error('Profile update error:', err);
+    res.status(500).json({ 
+      message: "Something went wrong", 
+      error: err.message 
+    });
   }
 });
 
